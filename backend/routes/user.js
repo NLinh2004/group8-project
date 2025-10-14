@@ -9,3 +9,11 @@ router.get('/', userController.getAllUsers);
 router.post('/', userController.addUser);
 
 module.exports = router;
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+  name: String,
+  email: String
+});
+
+module.exports = mongoose.model('User', UserSchema);
