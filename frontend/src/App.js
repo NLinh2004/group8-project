@@ -3,17 +3,32 @@ import './App.css';
 import React, { useState } from "react";
 import UserList from "./UserList";
 import AddUser from "./AddUser";
+import axios from "axios"
+
 function App() {
-  const [refresh, setRefresh] = useState(false);
-  const handleAdd = () => setRefresh(!refresh);
+  const [users, setUsers] = useState([]);
+
+  const fetchUsers = () => {
+    axios
+      .get("http://localhost:3000/users")
+      .then((res) => setUsers(res.data))
+      .catch((err) => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleUserAdded = () => {
+    fetchUsers();
+  };
+
   return (
     <div className="App">
-      
       <h1>Quản lý người dùng</h1>
-      <AddUser onAdd={handleAdd} />
-      <UserList key={refresh} />
+      <AddUser onUserAdded={handleUserAdded} />
+      <UserList users={users} />
     </div>
-    
   );
 }
 
