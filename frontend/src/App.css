@@ -36,3 +36,74 @@
     transform: rotate(360deg);
   }
 }
+body {
+  font-family: Arial, sans-serif;
+  background: #f8f8f8;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  width: 90%;
+  margin: auto;
+  text-align: center;
+}
+
+h1 {
+  background: #282c34;
+  color: white;
+  padding: 15px 0;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.content {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.left, .right {
+  background: #d3dedb;
+  flex: 1;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+input {
+  display: block;
+  margin: 10px auto;
+  padding: 8px;
+  width: 80%;
+}
+
+button {
+  padding: 8px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+body {
+  background-image: url("/Blue.png"); /* nếu ảnh nằm trong public/images */
+  background-size: cover; /* phủ toàn bộ màn hình */
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+}
+
+.app-container {
+  background-color: rgba(255, 255, 255, 0.8); /* lớp mờ nền */
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 900px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
