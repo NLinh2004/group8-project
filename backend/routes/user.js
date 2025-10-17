@@ -1,19 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
+const User = require('../models/User'); // chỉ import thôi, không tạo lại
 
-// GET /users
-router.get('/', userController.getAllUsers);
-
-// POST /users
-router.post('/', userController.addUser);
-
-module.exports = router;
-const mongoose = require('mongoose');
-
-const UserSchema = new mongoose.Schema({
-  name: String,
-  email: String
+// Ví dụ route:
+router.get('/', async (req, res) => {
+  const users = await User.find();
+  res.json(users);
 });
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = router;
