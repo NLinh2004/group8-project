@@ -1,11 +1,16 @@
-const express = require('express');
+import express from "express";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "../controllers/userController.js";
+
 const router = express.Router();
-const User = require('../models/User'); // chỉ import thôi, không tạo lại
 
-// Ví dụ route:
-router.get('/', async (req, res) => {
-  const users = await User.find();
-  res.json(users);
-});
+router.get("/users", getUsers);
+router.post("/users", createUser);
+router.put("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
-module.exports = router;
+export default router;
