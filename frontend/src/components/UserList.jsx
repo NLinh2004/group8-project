@@ -7,10 +7,10 @@ function UserList({ users }) {
       {users.length === 0 ? (
         <p>Chưa có người dùng nào.</p>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
           <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>STT</th>
+              <th style={{ border: "1px solid #ddd", padding: "8px", width: "10%" }}>STT</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>Tên</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>Email</th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>Git Name</th>
@@ -22,9 +22,9 @@ function UserList({ users }) {
                 <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "center" }}>
                   {index + 1}
                 </td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{u.name}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{u.email}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{u.gitname}</td>
+                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{u.name || "N/A"}</td>
+                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{u.email || "N/A"}</td>
+                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{u.gitname || "N/A"}</td>
               </tr>
             ))}
           </tbody>

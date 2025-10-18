@@ -4,17 +4,31 @@ function AddUser({ onAddUser }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gitname, setGitname] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state để xử lý loading
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !gitname.trim()) {
       alert("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    onAddUser({ name, email, gitname });
-    setName("");
-    setEmail("");
-    setGitname("");
+    // Kiểm tra email cơ bản
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert("Email không hợp lệ!");
+      return;
+    }
+
+    setIsSubmitting(true); // Disable button khi submit
+    try {
+      await onAddUser({ name, email, gitname });
+      setName("");
+      setEmail("");
+      setGitname("");
+    } catch (error) {
+      alert("Lỗi khi thêm người dùng. Vui lòng thử lại!");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -28,6 +42,7 @@ function AddUser({ onAddUser }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             style={{ width: "100%", padding: "5px" }}
+            disabled={isSubmitting}
           />
         </div>
         <div style={{ marginBottom: "10px" }}>
@@ -37,6 +52,7 @@ function AddUser({ onAddUser }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={{ width: "100%", padding: "5px" }}
+            disabled={isSubmitting}
           />
         </div>
         <div style={{ marginBottom: "10px" }}>
@@ -46,20 +62,22 @@ function AddUser({ onAddUser }) {
             value={gitname}
             onChange={(e) => setGitname(e.target.value)}
             style={{ width: "100%", padding: "5px" }}
+            disabled={isSubmitting}
           />
         </div>
         <button
           type="submit"
+          disabled={isSubmitting}
           style={{
-            backgroundColor: "#1976d2",
+            backgroundColor: isSubmitting ? "#cccccc" : "#1976d2",
             color: "#fff",
             padding: "8px 16px",
             border: "none",
             borderRadius: "5px",
-            cursor: "pointer",
+            cursor: isSubmitting ? "not-allowed" : "pointer",
           }}
         >
-          Thêm
+          {isSubmitting ? "Đang thêm..." : "Thêm"}
         </button>
       </form>
     </div>

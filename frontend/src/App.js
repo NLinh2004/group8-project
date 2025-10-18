@@ -6,10 +6,13 @@ import background from "./assets/blue_3.png";
 function App() {
   const [users, setUsers] = useState([]);
 
-  // ✅ Hàm lấy dữ liệu từ backend (MongoDB)
+  // Hàm lấy dữ liệu từ backend (MongoDB)
   const fetchUsers = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/users");
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -17,7 +20,25 @@ function App() {
     }
   };
 
-  // ✅ Khi vừa load trang -> tự động gọi API
+  // Hàm thêm user mới
+  const onAddUser = async (newUser) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUser),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      fetchUsers(); // Refresh danh sách sau khi thêm
+    } catch (error) {
+      console.error("❌ Lỗi khi thêm user:", error);
+      alert("Không thể thêm user. Vui lòng kiểm tra server!");
+    }
+  };
+
+  // Gọi fetchUsers khi component mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -49,7 +70,7 @@ function App() {
       >
         {/* Form thêm user */}
         <div style={{ width: "35%" }}>
-          <AddUser fetchUsers={fetchUsers} />
+          <AddUser onAddUser={onAddUser} /> {/* Sửa prop */}
         </div>
 
         {/* Bảng hiển thị user */}
