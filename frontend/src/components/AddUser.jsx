@@ -1,10 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-function AddUser({ onAddUser }) {
+function AddUser({ onAddUser, onUpdateUser, editingUser }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gitname, setGitname] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state để xử lý loading
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Điền form khi chỉnh sửa user
+  useEffect(() => {
+    if (editingUser) {
+      setName(editingUser.name || "");
+      setEmail(editingUser.email || "");
+      setGitname(editingUser.gitname || "");
+    } else {
+      setName("");
+      setEmail("");
+      setGitname("");
+    }
+  }, [editingUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -12,20 +25,25 @@ function AddUser({ onAddUser }) {
       alert("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    // Kiểm tra email cơ bản
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       alert("Email không hợp lệ!");
       return;
     }
 
-    setIsSubmitting(true); // Disable button khi submit
+    setIsSubmitting(true);
     try {
-      await onAddUser({ name, email, gitname });
+      if (editingUser) {
+        // Cập nhật user
+        await onUpdateUser({ id: editingUser._id, name, email, gitname });
+      } else {
+        // Thêm user mới
+        await onAddUser({ name, email, gitname });
+      }
       setName("");
       setEmail("");
       setGitname("");
     } catch (error) {
-      alert("Lỗi khi thêm người dùng. Vui lòng thử lại!");
+      alert(`Lỗi khi ${editingUser ? "cập nhật" : "thêm"} người dùng. Vui lòng thử lại!`);
     } finally {
       setIsSubmitting(false);
     }
@@ -33,7 +51,7 @@ function AddUser({ onAddUser }) {
 
   return (
     <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "8px" }}>
-      <h2>Thêm người dùng</h2>
+      <h2>{editingUser ? "Sửa người dùng" : "Thêm người dùng"}</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "10px" }}>
           <label>Tên: </label>
@@ -77,7 +95,7 @@ function AddUser({ onAddUser }) {
             cursor: isSubmitting ? "not-allowed" : "pointer",
           }}
         >
-          {isSubmitting ? "Đang thêm..." : "Thêm"}
+          {isSubmitting ? "Đang xử lý..." : editingUser ? "Cập nhật" : "Thêm"}
         </button>
       </form>
     </div>
