@@ -7,7 +7,6 @@ function App() {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
 
-  // Lấy danh sách users
   const fetchUsers = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/users");
@@ -19,7 +18,6 @@ function App() {
     }
   };
 
-  // Thêm user mới
   const onAddUser = async (newUser) => {
     try {
       const response = await fetch("http://localhost:5000/api/users", {
@@ -29,14 +27,13 @@ function App() {
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       fetchUsers();
-      setEditingUser(null); // Reset form
+      setEditingUser(null);
     } catch (error) {
       console.error("❌ Lỗi khi thêm user:", error);
       throw error;
     }
   };
 
-  // Cập nhật user
   const onUpdateUser = async (updatedUser) => {
     try {
       const response = await fetch(`http://localhost:5000/api/users/${updatedUser.id}`, {
@@ -46,14 +43,13 @@ function App() {
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       fetchUsers();
-      setEditingUser(null); // Reset form
+      setEditingUser(null);
     } catch (error) {
       console.error("❌ Lỗi khi cập nhật user:", error);
       throw error;
     }
   };
 
-  // Xóa user
   const onDeleteUser = async (id) => {
     try {
       const response = await fetch(`http://localhost:5000/api/users/${id}`, {
@@ -63,16 +59,13 @@ function App() {
       fetchUsers();
     } catch (error) {
       console.error("❌ Lỗi khi xóa user:", error);
-      alert("Lỗi khi xóa user. Vui lòng thử lại!");
     }
   };
 
-  // Chọn user để chỉnh sửa
   const onEditUser = (user) => {
     setEditingUser(user);
   };
 
-  // Gọi fetchUsers khi mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -90,7 +83,7 @@ function App() {
         backgroundSize: "99% 95%",
       }}
     >
-      <h1 style={{ textAlign: "center", color: "#0b5cadff" }}>QUẢN LÝ NGƯỜI DÙNG</h1>
+      <h1 style={{ textAlign: "center", color: "#1976d2" }}>QUẢN LÝ NGƯỜI DÙNG</h1>
       <div
         style={{
           display: "flex",
