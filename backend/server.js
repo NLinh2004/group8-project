@@ -46,23 +46,17 @@ app.post("/api/users", async (req, res) => {
 });
 
 // ✏️ Cập nhật user (PUT)
-app.put("/api/users/:id", async (req, res) => {
+app.post("/api/users", async (req, res) => {
   try {
-    const { id } = req.params;
-    const updatedUser = await User.findByIdAndUpdate(id, req.body, {
-      new: true, // trả về bản ghi mới
-      runValidators: true,
-    });
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User không tồn tại" });
-    }
-
-    res.json(updatedUser);
+    const { name, email, gitname, github } = req.body; // thêm 2 thuộc tính mới
+    const newUser = new User({ name, email, gitname, github });
+    await newUser.save();
+    res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // ❌ Xóa user (DELETE)
 app.delete("/api/users/:id", async (req, res) => {
