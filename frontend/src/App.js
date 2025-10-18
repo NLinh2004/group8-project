@@ -1,33 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AddUser from "./components/AddUser";
 import UserList from "./components/UserList";
-import axios from "axios";
 import background from "./assets/blue_3.png";
 
 function App() {
   const [users, setUsers] = useState([]);
 
-  // Hàm lấy dữ liệu từ backend (MongoDB)
+  // ✅ Hàm lấy dữ liệu từ backend (MongoDB)
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/users");
-      setUsers(res.data);
-    } catch (err) {
-      console.error("Lỗi khi lấy dữ liệu người dùng:", err);
+      const response = await fetch("http://localhost:5000/api/users");
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("❌ Lỗi khi lấy danh sách người dùng:", error);
     }
   };
 
-  // Gọi khi thêm user mới
-  const handleAddUser = async (newUser) => {
-    try {
-      await axios.post("http://localhost:5000/api/users", newUser);
-      fetchUsers();
-    } catch (err) {
-      console.error("Lỗi khi thêm người dùng:", err);
-      alert("Không thể thêm người dùng. Kiểm tra lại backend!");
-    }
-  };
-
+  // ✅ Khi vừa load trang -> tự động gọi API
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -45,27 +35,24 @@ function App() {
         backgroundSize: "99% 95%",
       }}
     >
-      <h1 style={{ textAlign: "center", color: "#1976d2" }}>
-        Quản lý người dùng
-      </h1>
+      <h1 style={{ textAlign: "center", color: "#1976d2" }}>Quản lý người dùng</h1>
 
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           marginTop: "20px",
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          backgroundColor: "rgba(255, 255, 255, 0.8)",
           borderRadius: "12px",
-          padding: "25px",
-          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+          padding: "20px",
         }}
       >
-        {/* Form thêm user - hẹp lại */}
-        <div style={{ width: "35%", minWidth: "300px" }}>
-          <AddUser onAddUser={handleAddUser} />
+        {/* Form thêm user */}
+        <div style={{ width: "35%" }}>
+          <AddUser fetchUsers={fetchUsers} />
         </div>
 
-        {/* Bảng danh sách user - rộng hơn */}
+        {/* Bảng hiển thị user */}
         <div style={{ width: "60%" }}>
           <UserList users={users} />
         </div>
