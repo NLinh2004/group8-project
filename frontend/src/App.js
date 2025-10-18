@@ -1,31 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import AddUser from './components/AddUser';
-import UserList from './components/UserList';
-import background from './assets/blue_3.png';
+import React, { useState, useEffect } from "react";
+import AddUser from "./components/AddUser";
+import UserList from "./components/UserList";
+import axios from "axios";
+import background from "./assets/blue_3.png";
 
 function App() {
   const [users, setUsers] = useState([]);
-  const [editUser, setEditUser] = useState(null);
 
+  // Hàm lấy dữ liệu từ backend (MongoDB)
   const fetchUsers = async () => {
     try {
-      console.log('Sending GET request to http://localhost:5000/api/users');
-      const res = await axios.get('http://localhost:5000/api/users');
-      console.log('Dữ liệu từ API:', res.data);
-      if (!Array.isArray(res.data)) {
-        console.error('Response is not an array:', res.data);
-        return;
-      }
+      const res = await axios.get("http://localhost:5000/api/users");
       setUsers(res.data);
     } catch (err) {
-      console.error('Lỗi khi lấy danh sách:', err.message);
-      console.error('Chi tiết lỗi:', err.response ? err.response.data : err);
+      console.error("Lỗi khi lấy dữ liệu người dùng:", err);
+    }
+  };
+
+  // Gọi khi thêm user mới
+  const handleAddUser = async (newUser) => {
+    try {
+      await axios.post("http://localhost:5000/api/users", newUser);
+      fetchUsers();
+    } catch (err) {
+      console.error("Lỗi khi thêm người dùng:", err);
+      alert("Không thể thêm người dùng. Kiểm tra lại backend!");
     }
   };
 
   useEffect(() => {
-    console.log('Fetching users on mount');
     fetchUsers();
   }, []);
 
@@ -33,33 +36,38 @@ function App() {
     <div
       style={{
         backgroundImage: `url(${background})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'top',
-        minHeight: '100vh',
-        padding: '20px',
-        fontFamily: 'Arial',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: '99% 95%',
+        backgroundSize: "cover",
+        backgroundPosition: "top",
+        minHeight: "100vh",
+        padding: "20px",
+        fontFamily: "Arial",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "99% 95%",
       }}
     >
-      <h1 style={{ textAlign: 'center', color: '#1976d2' }}>
+      <h1 style={{ textAlign: "center", color: "#1976d2" }}>
         Quản lý người dùng
       </h1>
+
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginTop: '20px',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          borderRadius: '12px',
-          padding: '20px',
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: "20px",
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          borderRadius: "12px",
+          padding: "25px",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <div style={{ width: '45%' }}>
-          <AddUser fetchUsers={fetchUsers} editUser={editUser} />
+        {/* Form thêm user - hẹp lại */}
+        <div style={{ width: "35%", minWidth: "300px" }}>
+          <AddUser onAddUser={handleAddUser} />
         </div>
-        <div style={{ width: '50%' }}>
-          <UserList users={users} setUsers={setUsers} setEditUser={setEditUser} />
+
+        {/* Bảng danh sách user - rộng hơn */}
+        <div style={{ width: "60%" }}>
+          <UserList users={users} />
         </div>
       </div>
     </div>
