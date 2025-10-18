@@ -63,7 +63,7 @@ frontend/.env
 frontend/.DS_Store
 frontend/npm-debug.log*
 frontend/yarn-error.log*
-
+frontend/node_modules/.cache/
 # =============================
 # Backend specific (Node.js + MongoDB)
 # =============================
