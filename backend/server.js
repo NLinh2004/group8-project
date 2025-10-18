@@ -89,3 +89,11 @@ app.delete("/api/users", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
 });
+import cors from "cors";
+
+// ✅ Cho phép frontend (React) gọi API từ cổng 3000
+app.use(cors({
+  origin: "http://localhost:3000",  // Địa chỉ frontend
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true // Cho phép gửi cookie/token nếu cần
+}));
