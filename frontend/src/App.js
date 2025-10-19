@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AddUser from "./components/AddUser";
 import UserList from "./components/UserList";
 import background from "./assets/blue_3.png";
-//Nhu Cuong
+
 function App() {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
@@ -15,6 +15,7 @@ function App() {
         throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
+      console.log("Fetched users:", data); // Debug
       setUsers(data);
     } catch (error) {
       console.error("❌ Lỗi khi lấy danh sách người dùng:", error.message);
@@ -23,6 +24,7 @@ function App() {
 
   const onAddUser = async (newUser) => {
     try {
+      console.log("Sending POST with data:", newUser); // Debug
       const response = await fetch("http://localhost:5000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,6 +34,8 @@ function App() {
         const errorData = await response.json();
         throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
       }
+      const result = await response.json();
+      console.log("POST response:", result); // Debug
       await fetchUsers();
     } catch (error) {
       console.error("❌ Lỗi khi thêm user:", error.message);
@@ -44,6 +48,7 @@ function App() {
       if (!updatedUser.id) {
         throw new Error("ID người dùng không hợp lệ");
       }
+      console.log("Sending PUT with ID:", updatedUser.id, "Data:", updatedUser); // Debug
       const response = await fetch(`http://localhost:5000/api/users/${updatedUser.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -53,6 +58,8 @@ function App() {
         const errorData = await response.json();
         throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
       }
+      const result = await response.json();
+      console.log("PUT response:", result); // Debug
       await fetchUsers();
       setEditingUser(null);
     } catch (error) {
@@ -66,6 +73,7 @@ function App() {
       if (!id) {
         throw new Error("ID người dùng không hợp lệ");
       }
+      console.log("Sending DELETE with ID:", id); // Debug
       const response = await fetch(`http://localhost:5000/api/users/${id}`, {
         method: "DELETE",
       });
@@ -73,6 +81,8 @@ function App() {
         const errorData = await response.json();
         throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
       }
+      const result = await response.json();
+      console.log("DELETE response:", result); // Debug
       await fetchUsers();
     } catch (error) {
       console.error("❌ Lỗi khi xóa user:", error.message);
@@ -80,13 +90,37 @@ function App() {
     }
   };
 
+  const onDeleteAllUsers = async () => {
+    try {
+      console.log("Sending DELETE all users"); // Debug
+      const response = await fetch("http://localhost:5000/api/users", {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log("DELETE all response:", result); // Debug
+      await fetchUsers();
+    } catch (error) {
+      console.error("❌ Lỗi khi xóa tất cả người dùng:", error.message);
+      throw new Error(error.message || "Lỗi khi xóa tất cả người dùng");
+    }
+  };
+
   const onEditUser = (user) => {
+    console.log("Editing user:", user); // Debug
     setEditingUser(user);
   };
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    console.log("Users state updated:", users); // Debug
+  }, [users]);
 
   return (
     <div
@@ -116,7 +150,12 @@ function App() {
           <AddUser onAddUser={onAddUser} onUpdateUser={onUpdateUser} editingUser={editingUser} />
         </div>
         <div style={{ width: "60%" }}>
-          <UserList users={users} onEditUser={onEditUser} onDeleteUser={onDeleteUser} />
+          <UserList
+            users={users}
+            onEditUser={onEditUser}
+            onDeleteUser={onDeleteUser}
+            onDeleteAllUsers={onDeleteAllUsers}
+          />
         </div>
       </div>
     </div>
