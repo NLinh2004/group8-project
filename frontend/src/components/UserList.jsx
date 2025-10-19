@@ -23,7 +23,6 @@ function UserList({ users, onEditUser, onDeleteUser }) {
     }
   };
 
-
   return (
     <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "8px" }}>
       <h2>Danh sách người dùng</h2>
