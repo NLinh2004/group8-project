@@ -1,6 +1,15 @@
 import React from "react";
 
 function UserList({ users, onEditUser, onDeleteUser }) {
+  const handleDelete = (id) => {
+    // Log ID để debug
+    console.log("Deleting user with ID:", id);
+    // Xác nhận trước khi xóa
+    if (window.confirm("Bạn có chắc muốn xóa người dùng này?")) {
+      onDeleteUser(id);
+    }
+  };
+
   return (
     <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "8px" }}>
       <h2>Danh sách người dùng</h2>
@@ -42,7 +51,7 @@ function UserList({ users, onEditUser, onDeleteUser }) {
                     Sửa
                   </button>
                   <button
-                    onClick={() => onDeleteUser(u._id)}
+                    onClick={() => handleDelete(u._id)}
                     style={{
                       backgroundColor: "#c73126ff",
                       color: "#fff",
