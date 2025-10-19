@@ -21,3 +21,73 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# =============================
+# Global ignores
+# =============================
+node_modules/
+.env
+.env.local
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+Thumbs.db
+
+# =============================
+# Build output
+# =============================
+dist/
+build/
+coverage/
+tmp/
+.cache/
+.vscode/
+.idea/
+
+# =============================
+# OS-specific files
+# =============================
+*.log
+*.tmp
+*.swp
+*.swo
+
+# =============================
+# Frontend specific (React)
+# =============================
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/.DS_Store
+frontend/npm-debug.log*
+frontend/yarn-error.log*
+frontend/node_modules/.cache/
+# =============================
+# Backend specific (Node.js + MongoDB)
+# =============================
+backend/node_modules/
+backend/.env
+backend/logs/
+backend/temp/
+backend/uploads/
+backend/package-lock.json
+backend/.DS_Store
+
+# =============================
+# MongoDB / database backups
+# =============================
+*.bson
+*.json
+*.csv
+dump/
+data/
+mongodb_data/
+
+# =============================
+# System folders
+# =============================
+
+.gitignore
+
