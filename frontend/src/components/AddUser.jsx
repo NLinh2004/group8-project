@@ -5,7 +5,7 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
   const [email, setEmail] = useState("");
   const [gitname, setGitname] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({ name: "", email: "", gitname: "" });
+  const [errors, setErrors] = useState({ name: "", email: "", gitname: "", form: "" });
 
   // Điền form khi chỉnh sửa
   useEffect(() => {
@@ -13,37 +13,50 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
       setName(editingUser.name || "");
       setEmail(editingUser.email || "");
       setGitname(editingUser.gitname || "");
-      setErrors({ name: "", email: "", gitname: "" });
+      setErrors({ name: "", email: "", gitname: "", form: "" });
     } else {
       setName("");
       setEmail("");
       setGitname("");
-      setErrors({ name: "", email: "", gitname: "" });
+      setErrors({ name: "", email: "", gitname: "", form: "" });
     }
   }, [editingUser]);
 
+  // Validation cho từng field
+  const validateField = (field, value) => {
+    switch (field) {
+      case "name":
+        return value.trim() ? "" : "Tên không được để trống";
+      case "email":
+        if (!value.trim()) return "Email không được để trống";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Email không hợp lệ";
+      case "gitname":
+        return value.trim() ? "" : "Git Name không được để trống";
+      default:
+        return "";
+    }
+  };
+
+  // Validation real-time khi nhập
+  const handleInputChange = (field, value, setter) => {
+    setter(value);
+    setErrors((prev) => ({
+      ...prev,
+      [field]: validateField(field, value),
+      form: "",
+    }));
+  };
+
+  // Validation toàn form khi submit
   const validateForm = () => {
-    const newErrors = { name: "", email: "", gitname: "" };
-    let isValid = true;
-
-    if (!name.trim()) {
-      newErrors.name = "Tên không được để trống";
-      isValid = false;
-    }
-    if (!email.trim()) {
-      newErrors.email = "Email không được để trống";
-      isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Email không hợp lệ";
-      isValid = false;
-    }
-    if (!gitname.trim()) {
-      newErrors.gitname = "Git Name không được để trống";
-      isValid = false;
-    }
-
+    const newErrors = {
+      name: validateField("name", name),
+      email: validateField("email", email),
+      gitname: validateField("gitname", gitname),
+      form: "",
+    };
     setErrors(newErrors);
-    return isValid;
+    return !newErrors.name && !newErrors.email && !newErrors.gitname;
   };
 
   const handleSubmit = async (e) => {
@@ -53,14 +66,24 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
     setIsSubmitting(true);
     try {
       if (editingUser) {
+        if (!editingUser._id) throw new Error("ID người dùng không hợp lệ");
         await onUpdateUser({ id: editingUser._id, name, email, gitname });
       } else {
         await onAddUser({ name, email, gitname });
       }
+      // Không reset form, chỉ xóa lỗi
+      setErrors({ name: "", email: "", gitname: "", form: "" });
     } catch (error) {
+      console.error(`❌ Lỗi khi ${editingUser ? "cập nhật" : "thêm"} user:`, error.message);
+      let errorMessage = `Lỗi khi ${editingUser ? "cập nhật" : "thêm"} người dùng. Vui lòng thử lại!`;
+      if (error.message.includes("E11000")) {
+        errorMessage = "Email đã tồn tại. Vui lòng sử dụng email khác!";
+      } else if (error.message.includes("404")) {
+        errorMessage = "Người dùng không tồn tại!";
+      }
       setErrors({
         ...errors,
-        form: `Lỗi khi ${editingUser ? "cập nhật" : "thêm"} người dùng. Vui lòng thử lại!`,
+        form: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
@@ -77,7 +100,7 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => handleInputChange("name", e.target.value, setName)}
             style={{
               width: "100%",
               padding: "5px",
@@ -92,7 +115,7 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleInputChange("email", e.target.value, setEmail)}
             style={{
               width: "100%",
               padding: "5px",
@@ -107,7 +130,7 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
           <input
             type="text"
             value={gitname}
-            onChange={(e) => setGitname(e.target.value)}
+            onChange={(e) => handleInputChange("gitname", e.target.value, setGitname)}
             style={{
               width: "100%",
               padding: "5px",
