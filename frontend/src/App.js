@@ -1,3 +1,20 @@
+
+import logo from './logo.svg';
+import './App.css';
+import React, { useState } from "react";
+import UserList from "./UserList";
+import AddUser from "./AddUser";
+import axios from "axios"
+
+function App() {
+  const [users, setUsers] = useState([]);
+
+  const fetchUsers = () => {
+    axios
+      .get("http://localhost:3000/users")
+      .then((res) => setUsers(res.data))
+      .catch((err) => console.error(err));
+
 import React, { useEffect, useState } from "react";
 import AddUser from "./components/AddUser";
 import UserList from "./components/UserList";
@@ -114,6 +131,17 @@ function App() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+
+  const handleUserAdded = () => {
+    fetchUsers();
+  };
+
+  return (
+    <div className="App">
+      <h1>Quản lý người dùng</h1>
+      <AddUser onUserAdded={handleUserAdded} />
+      <UserList users={users} />
 
   return (
     <div
