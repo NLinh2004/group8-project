@@ -37,6 +37,7 @@ function App() {
       console.error("❌ Lỗi khi thêm user:", error.message);
       throw new Error(error.message || "Lỗi khi thêm người dùng");
     }
+
   };
 
   const onUpdateUser = async (updatedUser) => {
@@ -60,6 +61,31 @@ function App() {
       throw new Error(error.message || "Lỗi khi cập nhật người dùng");
     }
   };
+
+  };
+
+  const onUpdateUser = async (updatedUser) => {
+    try {
+      if (!updatedUser.id) {
+        throw new Error("ID người dùng không hợp lệ");
+      }
+      const response = await fetch(`http://localhost:5000/api/users/${updatedUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedUser),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+      }
+      await fetchUsers();
+      setEditingUser(null);
+    } catch (error) {
+      console.error("❌ Lỗi khi cập nhật user:", error.message);
+      throw new Error(error.message || "Lỗi khi cập nhật người dùng");
+    }
+  };
+
 
   const onDeleteUser = async (id) => {
     try {
