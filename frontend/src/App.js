@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AddUser from "./components/AddUser";
 import UserList from "./components/UserList";
-import background from "./assets/blue_3.png";
+import SignUp from "./components/SignUp";
+import Login from "./components/Login";
+import background from "./assets/meo.jpg";
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -123,42 +126,65 @@ function App() {
   }, [users]);
 
   return (
-    <div
-      style={{
-        backgroundImage: `url(${background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "top",
-        minHeight: "100vh",
-        padding: "20px",
-        fontFamily: "Arial",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "99% 95%",
-      }}
-    >
-      <h1 style={{ textAlign: "center", color: "#1976d2" }}>QUẢN LÝ NGƯỜI DÙNG</h1>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: "20px",
-          backgroundColor: "rgba(255, 255, 255, 0.8)",
-          borderRadius: "12px",
-          padding: "20px",
-        }}
-      >
-        <div style={{ width: "35%" }}>
-          <AddUser onAddUser={onAddUser} onUpdateUser={onUpdateUser} editingUser={editingUser} />
+    <Router>
+  <Routes>
+    {/* Redirect từ / sang /signup */}
+    <Route path="/" element={<Navigate to="/signup" />} />
+
+    {/* Các route */}
+    <Route path="/signup" element={<SignUp />} />
+    <Route path="/login" element={<Login />} />
+
+    {/* Giao diện chính */}
+    <Route
+      path="/dashboard"
+      element={
+        <div
+          style={{
+            backgroundImage: `url(${background})`,
+            backgroundSize: "cover",
+            backgroundPosition: "top",
+            minHeight: "100vh",
+            padding: "20px",
+            fontFamily: "Arial",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "99% 95%",
+          }}
+        >
+          <h1 style={{ textAlign: "center", color: "#1976d2" }}>
+            QUẢN LÝ NGƯỜI DÙNG
+          </h1>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: "20px",
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
+              borderRadius: "12px",
+              padding: "20px",
+            }}
+          >
+            <div style={{ width: "35%" }}>
+              <AddUser
+                onAddUser={onAddUser}
+                onUpdateUser={onUpdateUser}
+                editingUser={editingUser}
+              />
+            </div>
+            <div style={{ width: "60%" }}>
+              <UserList
+                users={users}
+                onEditUser={onEditUser}
+                onDeleteUser={onDeleteUser}
+                onDeleteAllUsers={onDeleteAllUsers}
+              />
+            </div>
+          </div>
         </div>
-        <div style={{ width: "60%" }}>
-          <UserList
-            users={users}
-            onEditUser={onEditUser}
-            onDeleteUser={onDeleteUser}
-            onDeleteAllUsers={onDeleteAllUsers}
-          />
-        </div>
-      </div>
-    </div>
+      }
+    />
+  </Routes>
+</Router>
   );
 }
 
