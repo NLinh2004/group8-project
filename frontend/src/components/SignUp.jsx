@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import API from "../api";
-import background from "../assets/meo3.png";
+import background from "../assets/bg4.png";
 import "../styles/Auth.css";
 
 function SignUp() {

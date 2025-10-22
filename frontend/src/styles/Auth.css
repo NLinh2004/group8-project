@@ -15,7 +15,7 @@
 .auth-container {
   display: flex;
   width: 900px;
-  height: 670px;
+  height: 800px;
   background-color: #fff;
   border-radius: 20px;
   overflow: hidden;
@@ -24,7 +24,7 @@
 /* ===== Phần trái (form) ===== */
 .auth-left {
   flex: 1;
-  padding: 60px;
+  padding: 600px;
 }
 
 .auth-left h1 {
@@ -52,7 +52,7 @@
 }
 
 .auth-left input:focus {
-  border-color: #7b1fa2;
+  border-color: #974fb6;
 }
 
 .auth-password-group {
@@ -70,7 +70,7 @@
   margin-top: 40px;
   width: 100%;
   padding: 14px;
-  background: #4a148c;
+  background: #3d0a7c;
   color: white;
   border: none;
   border-radius: 30px;
@@ -81,7 +81,7 @@
 }
 
 .auth-button:hover {
-  background: #6a1b9a;
+  background: #3f0b5f;
 }
 
 /* ===== Thông báo và link ===== */
@@ -96,7 +96,7 @@
 }
 
 .auth-link a {
-  color: #4a148c;
+  color: #27094c;
   text-decoration: none;
   font-weight: bold;
 }
@@ -108,7 +108,7 @@
 /* ===== Phần phải (màu nền gradient) ===== */
 .auth-right {
   flex: 1;
-  background: linear-gradient(135deg, #4a148c, #7b1fa2, #9c27b0, #ba68c8);
+  background: linear-gradient(135deg, #400f7d, #942ec0, #9c27b0, #ba68c8);
   display: flex;
   justify-content: center;
   align-items: center;
