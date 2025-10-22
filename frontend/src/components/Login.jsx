@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import API from "../api";
 import "../styles/Login.css"; // CSS dùng chung phong cách với SignUp
-import background from "../assets/meo3.png";
+import background from "../assets/bg4.png";
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
