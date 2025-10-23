@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import API from "../api";
 import background from "../assets/bg4.png";
 import "../styles/Auth.css";
 
@@ -7,6 +6,7 @@ function SignUp() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    gitname: "",
     password: "",
     confirmPassword: "",
   });
@@ -18,11 +18,30 @@ function SignUp() {
       setMessage("❌ Mật khẩu không khớp");
       return;
     }
+
     try {
-      const res = await API.signup(form);
-      setMessage(res.data.message);
+      const res = await fetch("http://localhost:5000/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          gitname: form.gitname,
+          password: form.password, // ✅ GỬI THÊM password
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Lỗi khi đăng ký");
+      }
+
+      const data = await res.json();
+      setMessage(`✅ ${data.message || "Đăng ký thành công!"}`);
     } catch (err) {
-      setMessage("❌ Lỗi khi đăng ký");
+      setMessage(`❌ ${err.message}`);
     }
   };
 
@@ -53,12 +72,13 @@ function SignUp() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
             />
+
             <label style={{ marginTop: "20px" }}>Tên git</label>
             <input
               type="text"
               placeholder="nhucuong"
               value={form.gitname}
-               onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(e) => setForm({ ...form, gitname: e.target.value })}
               required
             />
 
