@@ -5,6 +5,10 @@ import UserList from "./components/UserList";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
 import background from "./assets/meo.jpg";
+//test thu profile
+//import ProfileCard from "./components/ProfileCard";
+import TestProfile from "./pages/TestProfile";
+
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -134,6 +138,11 @@ function App() {
     {/* Các route */}
     <Route path="/signup" element={<SignUp />} />
     <Route path="/login" element={<Login />} />
+
+      {/* ✅ Route test Profile */}
+    {/* <Route path="/profile-test" element={<ProfileCard />} />   */}
+      {/* ✅ Route test Profile */}
+    <Route path="/profile-test" element={<TestProfile />} />
 
     {/* Giao diện chính */}
     <Route
