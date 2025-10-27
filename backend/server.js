@@ -27,9 +27,50 @@ mongoose.connect(MONGO_URI)
 // ✅ Test route
 app.get("/", (req, res) => res.send("✅ Server đang chạy đúng"));
 
+
 // ✅ Routes
 app.use("/api/auth", authRoutes);        // Auth
 app.use("/api/profile", profileRoutes);  // Profile
+
+// CRUD User
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+/*
+app.post("/api/users", async (req, res) => {
+  try {
+    const { name, email, gitname } = req.body;
+    const newUser = new User({ name, email, gitname });
+    await newUser.save();
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+*/
+//Thêm phần password
+app.post("/api/users", async (req, res) => {
+  try {
+    const { name, email, gitname, password } = req.body; // ✅ thêm password
+    const newUser = new User({ name, email, gitname, password }); // ✅ thêm password
+    await newUser.save();
+    res.status(201).json({
+      success: true,
+      message: "✅ Đăng ký thành công",
+      data: newUser,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+// Auth routes
+app.use("/api/auth", authRoutes);
+
 
 // ✅ Khởi động server
 app.listen(PORT, () => {
