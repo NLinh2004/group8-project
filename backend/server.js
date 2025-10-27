@@ -2,9 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import User from "./models/User.js";
-import authRoutes from "./routes/authRoutes.js";  // 🔥 THÊM DÒNG NÀY
-
+import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -25,34 +24,14 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ Kết nối MongoDB thành công"))
   .catch((err) => console.error("❌ Lỗi MongoDB:", err));
 
-// Test route
+// ✅ Test route
 app.get("/", (req, res) => res.send("✅ Server đang chạy đúng"));
 
-// CRUD User
-app.get("/api/users", async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+// ✅ Routes
+app.use("/api/auth", authRoutes);        // Auth
+app.use("/api/profile", profileRoutes);  // Profile
 
-app.post("/api/users", async (req, res) => {
-  try {
-    const { name, email, gitname } = req.body;
-    const newUser = new User({ name, email, gitname });
-    await newUser.save();
-    res.status(201).json(newUser);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Auth routes
-app.use("/api/auth", authRoutes);
-
-// Khởi động server
+// ✅ Khởi động server
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
 });
