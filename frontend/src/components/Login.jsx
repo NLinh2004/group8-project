@@ -16,39 +16,43 @@ function Login() {
   }, [form.email]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch("http://localhost:5000/api/users");
-      if (!res.ok) throw new Error("Không thể kết nối server");
-      const users = await res.json();
+  e.preventDefault();
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST", // ✅ phải dùng POST
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password,
+      }),
+    });
 
-      const foundUser = users.find((u) => u.email === form.email);
-      if (!foundUser) {
-        setMessage("❌ Không tìm thấy tài khoản với email này");
-        return;
-      }
+    const data = await res.json();
 
-      // ✅ Kiểm tra password (ở đây là so sánh text do chưa có mã hóa)
-      if (form.password !== foundUser.password) {
-        setMessage("❌ Mật khẩu không chính xác");
-        return;
-      }
-
-      // ✅ Nếu tick ghi nhớ → lưu mật khẩu theo email
-      if (remember) {
-        const savedPasswords = JSON.parse(localStorage.getItem("savedPasswords")) || {};
-        savedPasswords[foundUser.email] = foundUser.password; // Lưu mật khẩu thực tế từ DB
-        localStorage.setItem("savedPasswords", JSON.stringify(savedPasswords));
-      }
-
-      localStorage.setItem("token", "fake-token");
-      localStorage.setItem("user", JSON.stringify(foundUser));
-
-      setMessage(`✅ Đăng nhập thành công - Chào mừng ${foundUser.name}!`);
-    } catch (err) {
-      setMessage(`❌ ${err.message}`);
+    if (!res.ok) {
+      throw new Error(data.message || "Không thể đăng nhập");
     }
-  };
+
+    // ✅ Nếu tick "Ghi nhớ đăng nhập"
+    if (remember) {
+      const savedPasswords =
+        JSON.parse(localStorage.getItem("savedPasswords")) || {};
+      savedPasswords[form.email] = form.password;
+      localStorage.setItem("savedPasswords", JSON.stringify(savedPasswords));
+    }
+
+    // ✅ Lưu token & user
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setMessage(`✅ Đăng nhập thành công - Chào mừng ${data.user.name}!`);
+  } catch (err) {
+    setMessage(`❌ ${err.message}`);
+  }
+};
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");

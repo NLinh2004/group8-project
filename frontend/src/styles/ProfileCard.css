@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
 .profile-card {
   display: flex;
   justify-content: space-between;
@@ -7,8 +9,11 @@
   padding: 25px;
   max-width: 800px;
   margin: 30px auto;
-  font-family: "Segoe UI", sans-serif;
+  font-family: "Poppins", sans-serif;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
+
 
 .profile-left {
   display: flex;
@@ -56,5 +61,14 @@
   width: 300px;
   height: 400px;
   object-fit: cover;
-  border: 1px solid #c2b7ae;
+  border-radius: 15px; /* 👈 Bo góc nhẹ hiện đại */
+  border: 3px solid #e5b381;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* 👈 Bóng nhẹ tự nhiên */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 👌 Hiệu ứng hover mượt */
 }
+
+.avatar:hover {
+  transform: scale(1.03); /* 👌 Phóng nhẹ khi hover */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+

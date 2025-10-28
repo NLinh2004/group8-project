@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 
 const ProfileUpdateForm = ({ user, onUpdate }) => {
   const [name, setName] = useState("");
-  const [gitname, setGitname] = useState("");
+  const [gitName, setGitName] = useState(""); // Changed from gitname to gitName
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✅ Khi component mount hoặc user thay đổi, set giá trị ban đầu
   useEffect(() => {
     if (user) {
       setName(user.name || "");
-      setGitname(user.gitname || "");
+      setGitName(user.gitName || ""); // Changed from gitname to gitName
       setEmail(user.email || "");
     }
   }, [user]);
@@ -24,7 +23,7 @@ const ProfileUpdateForm = ({ user, onUpdate }) => {
   const validate = () => {
     const newErrors = {};
     if (!name.trim()) newErrors.name = "Tên không được để trống";
-    if (!gitname.trim()) newErrors.gitname = "Git name không được để trống";
+    if (!gitName.trim()) newErrors.gitName = "Git name không được để trống"; // Updated
     if (!email.trim()) newErrors.email = "Email không được để trống";
     else if (!/\S+@\S+\.\S+/.test(email))
       newErrors.email = "Email không hợp lệ";
@@ -41,9 +40,8 @@ const ProfileUpdateForm = ({ user, onUpdate }) => {
 
     setIsSubmitting(true);
 
-    // Giả lập call API cập nhật thông tin
     setTimeout(() => {
-      const updatedUser = { ...user, name, gitname, email };
+      const updatedUser = { ...user, name, gitName, email }; // Updated
       onUpdate && onUpdate(updatedUser);
       setIsSubmitting(false);
       alert("Cập nhật thành công!");
@@ -107,19 +105,19 @@ const ProfileUpdateForm = ({ user, onUpdate }) => {
           <label>Git Name: </label>
           <input
             type="text"
-            value={gitname}
+            value={gitName} // Updated
             onChange={(e) =>
-              handleInputChange("gitname", e.target.value, setGitname)
+              handleInputChange("gitName", e.target.value, setGitName) // Updated
             }
             style={{
               width: "100%",
               padding: "5px",
-              borderColor: errors.gitname ? "red" : "#ddd",
+              borderColor: errors.gitName ? "red" : "#ddd", // Updated
             }}
             disabled={isSubmitting}
           />
-          {errors.gitname && (
-            <p style={{ color: "red", fontSize: "12px" }}>{errors.gitname}</p>
+          {errors.gitName && ( // Updated
+            <p style={{ color: "red", fontSize: "12px" }}>{errors.gitName}</p>
           )}
         </div>
 
