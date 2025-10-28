@@ -26,24 +26,26 @@ router.post("/signup", async (req, res) => {
       email,
       gitname,
       password: hashedPassword,
+      role: "user", // Mặc định user thường
     });
 
     await newUser.save();
 
-    // 🔥 THÊM 3 DÒNG TOKEN CHO SIGNUP
+    // ✅ Token có thêm role
     const token = jwt.sign(
-      { id: newUser._id },
-      process.env.JWT_SECRET,  // 🔥 SỬA DÒNG 1: JWT_SECRET
-      { expiresIn: "1h" }
+      { id: newUser._id, role: newUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     res.status(201).json({
       message: "Đăng ký thành công!",
-      token,  // 🔥 THÊM DÒNG 2: TOKEN
+      token,
       user: {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -52,6 +54,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+// Đăng nhập
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -70,11 +73,11 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Sai mật khẩu" });
     }
 
-    // 🔥 SỬA DÒNG 3: JWT_SECRET
+    // ✅ Token có thêm role
     const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,  // 🔥 SỬA TỪ "SECRET_KEY"
-      { expiresIn: "1h" }
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     res.status(200).json({
@@ -84,6 +87,7 @@ router.post("/login", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -92,6 +96,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Đăng xuất
 router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Đăng xuất thành công!" });
 });
