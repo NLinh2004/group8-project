@@ -1,92 +1,98 @@
+// components/Login.js
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import background from "../assets/bg4.png";
 
-function Login() {
+function Login({ onLoginSuccess }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
-  const [remember, setRemember] = useState(false); // ✅ Trạng thái tick "ghi nhớ"
+  const [remember, setRemember] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // ✅ Khi người dùng nhập email, nếu email đã được lưu mật khẩu → tự động điền
+  // Tự động điền nếu có remember me
   useEffect(() => {
     const savedPasswords = JSON.parse(localStorage.getItem("savedPasswords")) || {};
-    if (form.email && savedPasswords[form.email]) {
-      setForm((prev) => ({ ...prev, password: savedPasswords[form.email] }));
+    const lastEmail = localStorage.getItem("lastEmail");
+    if (lastEmail && savedPasswords[lastEmail]) {
+      setForm({ email: lastEmail, password: savedPasswords[lastEmail] });
+      setRemember(true);
     }
-  }, [form.email]);
+  }, []);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST", // ✅ phải dùng POST
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: form.email,
-        password: form.password,
-      }),
-    });
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
-    const data = await res.json();
+    try {
+      // 1. Đăng nhập
+      const loginRes = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email.trim(), password: form.password }),
+      });
 
-    if (!res.ok) {
-      throw new Error(data.message || "Không thể đăng nhập");
-    }
+      const loginData = await loginRes.json();
+      if (!loginRes.ok) throw new Error(loginData.message || "Đăng nhập thất bại");
 
-    // ✅ Nếu tick "Ghi nhớ đăng nhập"
-    if (remember) {
-      const savedPasswords =
-        JSON.parse(localStorage.getItem("savedPasswords")) || {};
-      savedPasswords[form.email] = form.password;
-      localStorage.setItem("savedPasswords", JSON.stringify(savedPasswords));
-    }
+      // 2. Lưu remember me
+      if (remember) {
+        const savedPasswords = JSON.parse(localStorage.getItem("savedPasswords")) || {};
+        savedPasswords[form.email.trim()] = form.password;
+        localStorage.setItem("savedPasswords", JSON.stringify(savedPasswords));
+        localStorage.setItem("lastEmail", form.email.trim());
+      } else {
+        localStorage.removeItem("lastEmail");
+      }
 
-    // ✅ Lưu token & user
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+      // 3. LẤY THÔNG TIN PROFILE CHI TIẾT
+      const profileRes = await fetch("http://localhost:5000/api/profile", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${loginData.token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    setMessage(`✅ Đăng nhập thành công - Chào mừng ${data.user.name}!`);
-  } catch (err) {
-    setMessage(`❌ ${err.message}`);
-  }
-};
+      if (!profileRes.ok) {
+        const err = await profileRes.json();
+        throw new Error(err.message || "Không thể lấy thông tin profile");
+      }
 
+      const profileData = await profileRes.json();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setMessage("✅ Đăng xuất thành công");
-    setForm({ email: "", password: "" });
-  };
+      // 4. GỌI CALLBACK VỚI USER ĐẦY ĐỦ
+      onLoginSuccess(profileData, loginData.token);
 
-  // ✅ Khi người dùng đổi mật khẩu → cập nhật lại mật khẩu trong localStorage
-  const handlePasswordChange = (newPassword) => {
-    setForm((prev) => ({ ...prev, password: newPassword }));
+      setMessage(`Chào mừng ${profileData.name || "bạn"}!`);
 
-    const savedPasswords = JSON.parse(localStorage.getItem("savedPasswords")) || {};
-    if (form.email && savedPasswords[form.email]) {
-      savedPasswords[form.email] = newPassword;
-      localStorage.setItem("savedPasswords", JSON.stringify(savedPasswords));
+      // 5. Chuyển hướng
+      setTimeout(() => navigate("/profile"), 600);
+
+    } catch (err) {
+      setMessage(`${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="auth-page" style={{ backgroundImage: `url(${background})` }}>
       <div className="auth-container">
-        {/* LEFT SIDE - Form */}
         <div className="auth-left">
           <h1 className="auth-title">Đăng nhập</h1>
           <form onSubmit={handleSubmit} className="auth-form">
             <label>Email</label>
             <input
               type="email"
-              placeholder="Nhập email của bạn"
+              placeholder="Nhập email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
               className="auth-input"
+              disabled={loading}
             />
 
             <label>Mật khẩu</label>
@@ -94,9 +100,10 @@ function Login() {
               type="password"
               placeholder="********"
               value={form.password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
               className="auth-input"
+              disabled={loading}
             />
 
             <div className="login-options">
@@ -105,14 +112,15 @@ function Login() {
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                />{" "}
+                  disabled={loading}
+                />
                 Ghi nhớ đăng nhập
               </label>
               <a href="#">Quên mật khẩu?</a>
             </div>
 
-            <button type="submit" className="auth-btn">
-              Đăng nhập
+            <button type="submit" className="auth-btn" disabled={loading}>
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
 
             <p className="auth-bottom-text">
@@ -121,20 +129,7 @@ function Login() {
 
             {message && <p className="auth-message">{message}</p>}
           </form>
-
-          {/* Nút đăng xuất */}
-          {localStorage.getItem("token") && (
-            <button
-              onClick={handleLogout}
-              className="auth-btn"
-              style={{ marginTop: "10px" }}
-            >
-              Đăng xuất
-            </button>
-          )}
         </div>
-
-        {/* RIGHT SIDE - Gradient */}
         <div className="auth-right"></div>
       </div>
     </div>
