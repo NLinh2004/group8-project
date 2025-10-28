@@ -1,5 +1,5 @@
 import express from "express";
-import User from "../models/user.js";
+import User from "../models/User.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -17,7 +17,7 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
-// ✅ Cập nhật thông tin cá nhân
+// Cập nhật thông tin cá nhân
 router.put("/", verifyToken, async (req, res) => {
   try {
     const { name, gitname, avatar } = req.body;
@@ -36,5 +36,4 @@ router.put("/", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 });
-
 export default router;
