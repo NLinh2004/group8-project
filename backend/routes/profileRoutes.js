@@ -1,10 +1,11 @@
 import express from "express";
 import User from "../models/User.js";
 import verifyToken from "../middleware/authMiddleware.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ✅ Xem thông tin cá nhân
+//  Xem thông tin cá nhân
 router.get("/", verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -17,7 +18,7 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
-// ✅ Cập nhật thông tin cá nhân
+// Cập nhật thông tin cá nhân
 router.put("/", verifyToken, async (req, res) => {
   try {
     const { name, gitname, avatar } = req.body;
@@ -36,5 +37,4 @@ router.put("/", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 });
-
 export default router;

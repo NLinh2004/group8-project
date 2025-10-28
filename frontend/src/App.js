@@ -1,190 +1,61 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import AddUser from "./components/AddUser";
-import UserList from "./components/UserList";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
-import background from "./assets/meo.jpg";
+import ProfilePage from "./components/ProfilePage";
 
 function App() {
-  const [users, setUsers] = useState([]);
-  const [editingUser, setEditingUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const localUser = localStorage.getItem("user");
+    return localUser ? JSON.parse(localUser) : null;
+  });
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/users");
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log("Fetched users:", data); // Debug
-      setUsers(data);
-    } catch (error) {
-      console.error("❌ Lỗi khi lấy danh sách người dùng:", error.message);
-    }
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
+
+  // Khi login thành công
+  const handleLoginSuccess = (loggedInUser, token) => {
+    setIsAuthenticated(true);
+    setUser(loggedInUser);
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(loggedInUser));
   };
 
-  const onAddUser = async (newUser) => {
-    try {
-      console.log("Sending POST with data:", newUser); // Debug
-      const response = await fetch("http://localhost:5000/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-      }
-      const result = await response.json();
-      console.log("POST response:", result); // Debug
-      await fetchUsers();
-    } catch (error) {
-      console.error("❌ Lỗi khi thêm user:", error.message);
-      throw new Error(error.message || "Lỗi khi thêm người dùng");
-    }
+  // Khi logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsAuthenticated(false);
+    setUser(null);
   };
 
-  const onUpdateUser = async (updatedUser) => {
-    try {
-      if (!updatedUser.id) {
-        throw new Error("ID người dùng không hợp lệ");
-      }
-      console.log("Sending PUT with ID:", updatedUser.id, "Data:", updatedUser); // Debug
-      const response = await fetch(`http://localhost:5000/api/users/${updatedUser.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedUser),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-      }
-      const result = await response.json();
-      console.log("PUT response:", result); // Debug
-      await fetchUsers();
-      setEditingUser(null);
-    } catch (error) {
-      console.error("❌ Lỗi khi cập nhật user:", error.message);
-      throw new Error(error.message || "Lỗi khi cập nhật người dùng");
-    }
+  // Khi update thông tin profile
+  const handleUpdateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
-
-  const onDeleteUser = async (id) => {
-    try {
-      if (!id) {
-        throw new Error("ID người dùng không hợp lệ");
-      }
-      console.log("Sending DELETE with ID:", id); // Debug
-      const response = await fetch(`http://localhost:5000/api/users/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-      }
-      const result = await response.json();
-      console.log("DELETE response:", result); // Debug
-      await fetchUsers();
-    } catch (error) {
-      console.error("❌ Lỗi khi xóa user:", error.message);
-      throw new Error(error.message || "Lỗi khi xóa người dùng");
-    }
-  };
-
-  const onDeleteAllUsers = async () => {
-    try {
-      console.log("Sending DELETE all users"); // Debug
-      const response = await fetch("http://localhost:5000/api/users", {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-      }
-      const result = await response.json();
-      console.log("DELETE all response:", result); // Debug
-      await fetchUsers();
-    } catch (error) {
-      console.error("❌ Lỗi khi xóa tất cả người dùng:", error.message);
-      throw new Error(error.message || "Lỗi khi xóa tất cả người dùng");
-    }
-  };
-
-  const onEditUser = (user) => {
-    console.log("Editing user:", user); // Debug
-    setEditingUser(user);
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    console.log("Users state updated:", users); // Debug
-  }, [users]);
 
   return (
     <Router>
-  <Routes>
-    {/* Redirect từ / sang /signup */}
-    <Route path="/" element={<Navigate to="/signup" />} />
-
-    {/* Các route */}
-    <Route path="/signup" element={<SignUp />} />
-    <Route path="/login" element={<Login />} />
-
-    {/* Giao diện chính */}
-    <Route
-      path="/dashboard"
-      element={
-        <div
-          style={{
-            backgroundImage: `url(${background})`,
-            backgroundSize: "cover",
-            backgroundPosition: "top",
-            minHeight: "100vh",
-            padding: "20px",
-            fontFamily: "Arial",
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "99% 95%",
-          }}
-        >
-          <h1 style={{ textAlign: "center", color: "#1976d2" }}>
-            QUẢN LÝ NGƯỜI DÙNG
-          </h1>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "20px",
-              backgroundColor: "rgba(255, 255, 255, 0.8)",
-              borderRadius: "12px",
-              padding: "20px",
-            }}
-          >
-            <div style={{ width: "35%" }}>
-              <AddUser
-                onAddUser={onAddUser}
-                onUpdateUser={onUpdateUser}
-                editingUser={editingUser}
+      <Routes>
+        <Route path="/" element={<Navigate to={isAuthenticated ? "/profile" : "/login"} />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+        <Route
+          path="/profile"
+          element={
+            isAuthenticated ? (
+              <ProfilePage
+                user={user}
+                onLogout={handleLogout}
+                onUpdate={handleUpdateUser} // truyền hàm cập nhật user
               />
-            </div>
-            <div style={{ width: "60%" }}>
-              <UserList
-                users={users}
-                onEditUser={onEditUser}
-                onDeleteUser={onDeleteUser}
-                onDeleteAllUsers={onDeleteAllUsers}
-              />
-            </div>
-          </div>
-        </div>
-      }
-    />
-  </Routes>
-</Router>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 

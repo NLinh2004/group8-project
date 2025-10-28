@@ -9,6 +9,8 @@ import profileRoutes from "./routes/profileRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/user.js";
 
+import User from "./models/User.js";
+
 dotenv.config({ path: "./.env" });
 
 const app = express();
