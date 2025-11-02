@@ -26,7 +26,7 @@ router.post("/signup", async (req, res) => {
       email,
       gitname,
       password: hashedPassword,
-      role: "user", // Mặc định user thường
+      role: "user",
     });
 
     await newUser.save();

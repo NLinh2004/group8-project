@@ -1,4 +1,6 @@
+// src/components/ProfilePage.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // ← THÊM
 import "./../styles/Login.css";
 import "./../styles/ProfileCard.css";
 import gitIcon from "../assets/git-icon.png";
@@ -6,6 +8,7 @@ import mailIcon from "../assets/mail-icon.png";
 import defaultAvatar from "../assets/default-avatar.jpg";
 
 const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
+  const navigate = useNavigate(); // ← THÊM
   const [user, setUser] = useState(initialUser || {});
   const [name, setName] = useState("");
   const [gitname, setGitName] = useState("");
@@ -13,6 +16,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // ← THÊM
 
   useEffect(() => {
     if (user) {
@@ -28,47 +32,36 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     setMessage("");
   };
 
-  // NÉN ẢNH + GIỚI HẠN KÍCH THƯỚC
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Giới hạn 3MB
     if (file.size > 3 * 1024 * 1024) {
       setMessage("Ảnh quá lớn! Vui lòng chọn ảnh dưới 3MB.");
       return;
     }
-
     compressImage(file, (compressedBase64) => {
       setAvatar(compressedBase64);
       setMessage("Ảnh đã được nén và sẵn sàng cập nhật.");
     });
   };
 
-  // HÀM NÉN ẢNH
   const compressImage = (file, callback) => {
     const img = new Image();
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-
     img.onload = () => {
       let width = img.width;
       let height = img.height;
       const maxWidth = 800;
-
       if (width > maxWidth) {
         height = (height * maxWidth) / width;
         width = maxWidth;
       }
-
       canvas.width = width;
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
-
-      const compressed = canvas.toDataURL("image/jpeg", 0.7);
-      callback(compressed);
+      callback(canvas.toDataURL("image/jpeg", 0.7));
     };
-
     img.src = URL.createObjectURL(file);
   };
 
@@ -100,26 +93,17 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name: name.trim(),
-          gitname: gitname.trim(),
-          avatar,
-        }),
+        body: JSON.stringify({ name: name.trim(), gitname: gitname.trim(), avatar }),
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Cập nhật thất bại");
-      }
+      if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
 
       const updatedUser = data.user;
       setUser(updatedUser);
       onUpdate && onUpdate(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
-
       setMessage("Cập nhật thành công!");
-
     } catch (err) {
       setMessage(`Lỗi: ${err.message}`);
     } finally {
@@ -127,9 +111,29 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     }
   };
 
-  if (!user) {
-    return <p>Không có thông tin người dùng</p>;
-  }
+  // === XỬ LÝ XÓA TÀI KHOẢN ===
+  const handleDeleteAccount = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/admin/users/${initialUser._id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Xóa tài khoản thất bại");
+      }
+
+      alert("Tài khoản đã được xóa vĩnh viễn!");
+      onLogout(); // Xóa localStorage + state
+      navigate("/login");
+    } catch (err) {
+      alert(`Lỗi: ${err.message}`);
+    }
+  };
+
+  if (!user) return <p>Không có thông tin người dùng</p>;
 
   const displayName = user.name?.trim() || "Chưa có tên";
   const displayGitName = user.gitname?.trim() || "Chưa có Git name";
@@ -235,27 +239,46 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
               </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                backgroundColor: isSubmitting ? "#999" : "#1976d2",
-                color: "#fff",
-                padding: "12px",
-                border: "none",
-                borderRadius: "8px",
-                cursor: isSubmitting ? "not-allowed" : "pointer",
-                fontSize: "16px",
-                fontWeight: "600",
-                width: "100%",
-                marginTop: "10px",
-                fontFamily: "'Poppins', sans-serif",
-              }}
-            >
-              {isSubmitting ? "Đang lưu..." : "Cập nhật"}
-            </button>
+            {/* === NÚT CẬP NHẬT + XÓA CẠNH NHAU === */}
+            <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                style={{
+                  flex: "1",
+                  backgroundColor: isSubmitting ? "#999" : "#1976d2",
+                  color: "#fff",
+                  padding: "12px",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                }}
+              >
+                {isSubmitting ? "Đang lưu..." : "Cập nhật"}
+              </button>
 
-            {/* THÔNG BÁO ĐẸP */}
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{
+                  flex: "1",
+                  backgroundColor: "#d32f2f",
+                  color: "#fff",
+                  padding: "12px",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                }}
+              >
+                Xóa tài khoản
+              </button>
+            </div>
+
+            {/* THÔNG BÁO */}
             {message && (
               <div
                 style={{
@@ -280,26 +303,87 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
           <div className="profile-card">
             <div className="profile-left">
               <h1 className="user-name">{displayName}</h1>
-
               <div className="info-row">
                 <img src={gitIcon} alt="Git icon" className="icon" />
                 <span className="label">Tên git:</span>
                 <span className="value">{displayGitName}</span>
               </div>
-
               <div className="info-row">
                 <img src={mailIcon} alt="Mail icon" className="icon" />
                 <span className="label">Email:</span>
                 <span className="value">{email}</span>
               </div>
             </div>
-
             <div className="profile-right">
               <img src={avatar} alt="Avatar" className="avatar" />
             </div>
           </div>
         </div>
       </div>
+
+      {/* === MODAL XÁC NHẬN XÓA === */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: "24px",
+              borderRadius: "12px",
+              width: "340px",
+              textAlign: "center",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+            }}
+          >
+            <h3 style={{ color: "#d32f2f", margin: "0 0 12px" }}>Xác nhận xóa tài khoản</h3>
+            <p style={{ margin: "0 0 16px", fontSize: "15px" }}>
+              Bạn có chắc chắn muốn xóa tài khoản <strong>{displayName}</strong>?
+            </p>
+            <p style={{ color: "#d32f2f", fontSize: "13px", margin: "0 0 16px" }}>
+              Hành động này <strong>KHÔNG THỂ HOÀN TÁC</strong>!
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                onClick={handleDeleteAccount}
+                style={{
+                  backgroundColor: "#d32f2f",
+                  color: "#fff",
+                  padding: "10px 20px",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                }}
+              >
+                Xóa vĩnh viễn
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  backgroundColor: "#757575",
+                  color: "#fff",
+                  padding: "10px 20px",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                }}
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

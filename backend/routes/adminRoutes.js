@@ -3,6 +3,7 @@ import express from "express";
 import verifyToken from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
 import User from "../models/User.js";
+import { getAllUsers, deleteUser } from "../controllers/adminController.js";
 
 const router = express.Router();
 
@@ -20,5 +21,9 @@ router.get("/users", verifyToken, adminMiddleware, async (req, res) => {
     res.status(500).json({ message: "Lỗi khi lấy danh sách người dùng" });
   }
 });
+
+// DELETE: Xóa user - ADMIN HOẶC TỰ XÓA (KHÔNG CẦN adminMiddleware để user tự xóa)
+router.delete("/users/:id", verifyToken, deleteUser);
+
 
 export default router;
