@@ -1,8 +1,10 @@
+// App.js
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
 import ProfilePage from "./components/ProfilePage";
+import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -37,9 +39,17 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/profile" : "/login"} />} />
+        {/* Trang chủ */}
+        <Route
+          path="/"
+          element={<Navigate to={isAuthenticated ? "/profile" : "/login"} />}
+        />
+
+        {/* Auth */}
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+
+        {/* Profile - chỉ user đã login */}
         <Route
           path="/profile"
           element={
@@ -47,13 +57,28 @@ function App() {
               <ProfilePage
                 user={user}
                 onLogout={handleLogout}
-                onUpdate={handleUpdateUser} // truyền hàm cập nhật user
+                onUpdate={handleUpdateUser}
               />
             ) : (
               <Navigate to="/login" />
             )
           }
         />
+
+        {/* ADMIN DASHBOARD - CHỈ ADMIN MỚI VÀO ĐƯỢC */}
+        <Route
+          path="/admin"
+          element={
+            isAuthenticated && user?.role === "admin" ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/profile" replace />
+            )
+          }
+        />
+
+        {/* 404 - Không tìm thấy trang */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
