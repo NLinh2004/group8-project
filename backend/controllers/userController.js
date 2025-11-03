@@ -96,7 +96,7 @@ export const forgotPassword = async (req, res) => {
 // 2️⃣ Reset Password
 export const resetPassword = async (req, res) => {
   const { token } = req.params;
-  const { newPassword } = req.body;
+  const { password } = req.body;
   try {
     const user = await User.findOne({
       resetToken: token,
@@ -104,7 +104,7 @@ export const resetPassword = async (req, res) => {
     });
     if (!user) return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
     user.resetToken = undefined;
     user.resetTokenExpiry = undefined;

@@ -1,6 +1,6 @@
 // src/components/ForgotPassword.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");

@@ -116,7 +116,15 @@ function Login({ onLoginSuccess }) {
                 />
                 Ghi nhớ đăng nhập
               </label>
-              <a href="#">Quên mật khẩu?</a>
+              <a href="/forgot-password" 
+                  onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/forgot-password");
+                  }}
+                style={{ cursor: "pointer", color: "#1976d2", textDecoration: "underline" }}
+              >
+                Quên mật khẩu?
+              </a>
             </div>
 
             <button type="submit" className="auth-btn" disabled={loading}>
