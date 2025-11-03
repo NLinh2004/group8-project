@@ -128,7 +128,7 @@ export const uploadAvatar = async (req, res) => {
     if (req.body.email) {
       const user = await User.findOne({ email: req.body.email });
       if (user) {
-        user.avatarUrl = result.secure_url;
+        user.avatar = result.secure_url;
         await user.save();
       }
     }
