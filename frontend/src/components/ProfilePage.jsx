@@ -1,6 +1,6 @@
 // src/components/ProfilePage.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // ← THÊM
+import { useNavigate } from "react-router-dom";
 import "./../styles/Login.css";
 import "./../styles/ProfileCard.css";
 import gitIcon from "../assets/git-icon.png";
@@ -8,23 +8,23 @@ import mailIcon from "../assets/mail-icon.png";
 import defaultAvatar from "../assets/default-avatar.jpg";
 
 const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
-  const navigate = useNavigate(); // ← THÊM
+  const navigate = useNavigate();
   const [user, setUser] = useState(initialUser || {});
   const [name, setName] = useState("");
   const [gitname, setGitName] = useState("");
-  const [avatar, setAvatar] = useState(initialUser?.avatar || defaultAvatar);
+  const [avatar, setAvatar] = useState(initialUser?.avatarUrl || defaultAvatar); // ← DÙNG avatarUrl
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // ← THÊM
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      setName(user.name || "");
-      setGitName(user.gitname || "");
-      setAvatar(user.avatar || defaultAvatar);
+    if (initialUser) {
+      setName(initialUser.name || "");
+      setGitName(initialUser.gitname || "");
+      setAvatar(initialUser.avatarUrl || defaultAvatar); // ← DÙNG avatarUrl
     }
-  }, [user]);
+  }, [initialUser]);
 
   const handleInputChange = (field, value, setter) => {
     setter(value);
@@ -32,37 +32,38 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     setMessage("");
   };
 
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     if (file.size > 3 * 1024 * 1024) {
       setMessage("Ảnh quá lớn! Vui lòng chọn ảnh dưới 3MB.");
       return;
     }
-    compressImage(file, (compressedBase64) => {
-      setAvatar(compressedBase64);
-      setMessage("Ảnh đã được nén và sẵn sàng cập nhật.");
-    });
-  };
 
-  const compressImage = (file, callback) => {
-    const img = new Image();
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    img.onload = () => {
-      let width = img.width;
-      let height = img.height;
-      const maxWidth = 800;
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-      callback(canvas.toDataURL("image/jpeg", 0.7));
-    };
-    img.src = URL.createObjectURL(file);
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    setMessage("Đang tải ảnh lên...");
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/upload-avatar", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Upload thất bại");
+
+      setAvatar(data.avatarUrl);
+      setMessage("Upload thành công! Nhấn Cập nhật để lưu.");
+    } catch (err) {
+      setMessage(`Lỗi: ${err.message}`);
+    }
   };
 
   const validate = () => {
@@ -93,7 +94,11 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: name.trim(), gitname: gitname.trim(), avatar }),
+        body: JSON.stringify({
+          name: name.trim(),
+          gitname: gitname.trim(),
+          avatarUrl: avatar, // ← GỬI avatarUrl ĐÚNG VỚI MODEL
+        }),
       });
 
       const data = await res.json();
@@ -103,7 +108,11 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
       setUser(updatedUser);
       onUpdate && onUpdate(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
+
       setMessage("Cập nhật thành công!");
+      setTimeout(() => {
+        window.location.reload(); // TẢI LẠI ĐỂ useEffect CHẠY LẠI
+      }, 1000);
     } catch (err) {
       setMessage(`Lỗi: ${err.message}`);
     } finally {
@@ -126,18 +135,18 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
       }
 
       alert("Tài khoản đã được xóa vĩnh viễn!");
-      onLogout(); // Xóa localStorage + state
+      onLogout();
       navigate("/login");
     } catch (err) {
       alert(`Lỗi: ${err.message}`);
     }
   };
 
-  if (!user) return <p>Không có thông tin người dùng</p>;
+  if (!initialUser) return <p>Không có thông tin người dùng</p>;
 
-  const displayName = user.name?.trim() || "Chưa có tên";
-  const displayGitName = user.gitname?.trim() || "Chưa có Git name";
-  const email = user.email?.trim() || "Chưa có email";
+  const displayName = initialUser?.name?.trim() || "Chưa có tên";
+  const displayGitName = initialUser?.gitname?.trim() || "Chưa có Git name";
+  const email = initialUser?.email?.trim() || "Chưa có email";
 
   return (
     <div className="profile-container">
@@ -235,7 +244,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
                 style={{ fontSize: "14px" }}
               />
               <p style={{ fontSize: "12px", color: "#666", margin: "6px 0 0" }}>
-                Chọn ảnh mới (tối đa 3MB, sẽ tự động nén)
+                Chọn ảnh mới (tối đa 3MB)
               </p>
             </div>
 
@@ -315,7 +324,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
               </div>
             </div>
             <div className="profile-right">
-              <img src={avatar} alt="Avatar" className="avatar" />
+              <img src={avatar} alt="Avatar" className="avatar" /> {/* ← DÙNG avatar state */}
             </div>
           </div>
         </div>
