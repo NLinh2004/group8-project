@@ -12,7 +12,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
   const [user, setUser] = useState(initialUser || {});
   const [name, setName] = useState("");
   const [gitname, setGitName] = useState("");
-  const [avatar, setAvatar] = useState(initialUser?.avatarUrl || defaultAvatar); // ← DÙNG avatarUrl
+  const [avatar, setAvatar] = useState(initialUser?.avatar || defaultAvatar); // ← DÙNG avatarUrl
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
@@ -22,7 +22,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     if (initialUser) {
       setName(initialUser.name || "");
       setGitName(initialUser.gitname || "");
-      setAvatar(initialUser.avatarUrl || defaultAvatar); // ← DÙNG avatarUrl
+      setAvatar(initialUser.avatar || defaultAvatar); // ← DÙNG avatarUrl
     }
   }, [initialUser]);
 
@@ -44,6 +44,8 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     const formData = new FormData();
     formData.append("avatar", file);
 
+    console.log("BƯỚC 1: ĐÃ CHỌN FILE", file.name, file.size); // LOG 1
+
     setMessage("Đang tải ảnh lên...");
 
     try {
@@ -57,11 +59,15 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
       });
 
       const data = await res.json();
+      console.log("BƯỚC 2: RESPONSE TỪ CLOUDINARY", data); // LOG 2
+
       if (!res.ok) throw new Error(data.message || "Upload thất bại");
 
-      setAvatar(data.avatarUrl);
+      console.log("BƯỚC 3: UPLOAD THÀNH CÔNG → URL:", data.url); // LOG 3
+      setAvatar(data.url);
       setMessage("Upload thành công! Nhấn Cập nhật để lưu.");
     } catch (err) {
+      console.error("LỖI UPLOAD", err);
       setMessage(`Lỗi: ${err.message}`);
     }
   };
@@ -84,6 +90,8 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     setIsSubmitting(true);
     setMessage("Đang lưu vào cơ sở dữ liệu...");
 
+    console.log("BƯỚC 4: DỮ LIỆU GỬI LÊN DB", { name: name.trim(), gitname: gitname.trim(), avatar: avatar }); // LOG 4
+
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
@@ -97,23 +105,29 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
         body: JSON.stringify({
           name: name.trim(),
           gitname: gitname.trim(),
-          avatarUrl: avatar, // ← GỬI avatarUrl ĐÚNG VỚI MODEL
+          avatar: avatar,
         }),
       });
 
       const data = await res.json();
+      console.log("BƯỚC 5: RESPONSE TỪ /api/profile", data); // LOG 5
+
       if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
 
       const updatedUser = data.user;
+      console.log("BƯỚC 6: USER ĐÃ CẬP NHẬT TRONG DB", updatedUser); // LOG 6
+
       setUser(updatedUser);
       onUpdate && onUpdate(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
       setMessage("Cập nhật thành công!");
       setTimeout(() => {
-        window.location.reload(); // TẢI LẠI ĐỂ useEffect CHẠY LẠI
+        console.log("BƯỚC 7: TẢI LẠI TRANG..."); // LOG 7
+        window.location.reload();
       }, 1000);
     } catch (err) {
+      console.error("LỖI CẬP NHẬT DB", err);
       setMessage(`Lỗi: ${err.message}`);
     } finally {
       setIsSubmitting(false);

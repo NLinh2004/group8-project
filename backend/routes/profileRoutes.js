@@ -21,11 +21,16 @@ router.get("/", verifyToken, async (req, res) => {
 router.put("/", verifyToken, async (req, res) => {
   try {
     const { name, gitname, avatar } = req.body;
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
-      { name, gitname, avatar },
-      { new: true }
+      { name, gitname, avatar }, // ← TRUYỀN TRỰC TIẾP
+      { new: true, runValidators: true }
     ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    }
 
     res.json({
       success: true,
@@ -33,6 +38,7 @@ router.put("/", verifyToken, async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
+    console.error("Lỗi cập nhật profile:", error);
     res.status(500).json({ message: "Lỗi server" });
   }
 });

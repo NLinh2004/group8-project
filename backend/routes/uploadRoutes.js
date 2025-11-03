@@ -29,7 +29,7 @@ router.post("/upload-avatar", upload.single("avatar"), async (req, res) => {
       { folder: "avatars" },
       (error, result) => {
         if (error) return res.status(500).json({ message: error.message });
-        return res.json({ message: "Avatar uploaded successfully", avatarUrl: result.secure_url });
+        return res.json({ message: "Avatar uploaded successfully", avatar: result.secure_url });
       }
     );
 

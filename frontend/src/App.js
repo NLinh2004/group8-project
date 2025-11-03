@@ -1,5 +1,4 @@
-// App.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // ← THÊM useEffect
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
@@ -11,7 +10,14 @@ import ResetPassword from "./components/ResetPassword";
 function App() {
   const [user, setUser] = useState(() => {
     const localUser = localStorage.getItem("user");
-    return localUser ? JSON.parse(localUser) : null;
+    if (!localUser || localUser === "undefined" || localUser === "null") {
+      return null;
+    }
+    try {
+      return JSON.parse(localUser);
+    } catch (err) {
+      return null;
+    }
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
@@ -31,9 +37,35 @@ function App() {
   };
 
   const handleUpdateUser = (updatedUser) => {
-    setUser(updatedUser); // CẬP NHẬT user state
-    localStorage.setItem("user", JSON.stringify(updatedUser)); // CẬP NHẬT localStorage
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
+
+  // ← THÊM useEffect ĐỂ TẢI USER TỪ DB
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || token === "undefined" || token === "null") return;
+
+      try {
+        const res = await fetch("http://localhost:5000/api/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data) {
+          console.log("TẢI USER TỪ DB:", data);
+          setUser(data);
+          localStorage.setItem("user", JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error("Lỗi lấy user từ DB:", err);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchUser();
+    }
+  }, [isAuthenticated]);
 
   return (
     <Router>
@@ -44,13 +76,12 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Profile – THÊM key={user?._id} ĐỂ FORCE RE-RENDER */}
         <Route
           path="/profile"
           element={
             isAuthenticated ? (
               <ProfilePage
-                key={user?._id} // THAY ĐỔI → component mount lại
+                key={user?._id}
                 user={user}
                 onLogout={handleLogout}
                 onUpdate={handleUpdateUser}
