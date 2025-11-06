@@ -1,50 +1,66 @@
-import React, { useState, useEffect } from "react"; // ← THÊM useEffect
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+// === COMPONENTS ===
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
 import ProfilePage from "./components/ProfilePage";
-import AdminDashboard from "./components/AdminDashboard";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import ProtectedRoute from "./components/ProtectedRoute";
+import RoleGuard from "./components/RoleGuard";
+
+// === PAGES ===
+import UserManagement from "./pages/UserManagement";
+import ModeratorPanel from "./pages/ModeratorPanel";
+import AdminDashboard from "./pages/AdminDashboard";
+import ActivityLogs from "./pages/ActivityLogs";
 
 function App() {
   const [user, setUser] = useState(() => {
     const localUser = localStorage.getItem("user");
-    if (!localUser || localUser === "undefined" || localUser === "null") {
-      return null;
-    }
+    if (!localUser || localUser === "undefined" || localUser === "null") return null;
     try {
       return JSON.parse(localUser);
-    } catch (err) {
+    } catch {
       return null;
     }
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("accessToken")); // ← DÙNG accessToken
 
-  const handleLoginSuccess = (loggedInUser, token) => {
+  // === XỬ LÝ LOGIN ===
+  const handleLoginSuccess = (loggedInUser, accessToken) => {
     setIsAuthenticated(true);
     setUser(loggedInUser);
-    localStorage.setItem("token", token);
+    localStorage.setItem("accessToken", accessToken); // ← LƯU accessToken
     localStorage.setItem("user", JSON.stringify(loggedInUser));
   };
 
+  // === XỬ LÝ LOGOUT ===
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     setIsAuthenticated(false);
     setUser(null);
   };
 
+  // === CẬP NHẬT USER ===
   const handleUpdateUser = (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  // ← THÊM useEffect ĐỂ TẢI USER TỪ DB
+  // === TẢI USER TỪ DB KHI CÓ TOKEN ===
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       if (!token || token === "undefined" || token === "null") return;
 
       try {
@@ -53,7 +69,6 @@ function App() {
         });
         const data = await res.json();
         if (res.ok && data) {
-          console.log("TẢI USER TỪ DB:", data);
           setUser(data);
           localStorage.setItem("user", JSON.stringify(data));
         }
@@ -62,47 +77,77 @@ function App() {
       }
     };
 
-    if (isAuthenticated) {
-      fetchUser();
-    }
+    if (isAuthenticated) fetchUser();
   }, [isAuthenticated]);
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/profile" : "/login"} />} />
-        <Route path="/signup" element={<SignUp />} />
+        {/* ==================== PUBLIC ROUTES ==================== */}
         <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        <Route
-          path="/profile"
-          element={
-            isAuthenticated ? (
+        {/* ==================== PROTECTED ROUTES ==================== */}
+        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user} />}>
+          <Route path="/" element={<Navigate to="/profile" replace />} />
+
+          {/* PROFILE – TẤT CẢ USER */}
+          <Route
+            path="/profile"
+            element={
               <ProfilePage
                 key={user?._id}
                 user={user}
                 onLogout={handleLogout}
                 onUpdate={handleUpdateUser}
               />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/admin"
-          element={
-            isAuthenticated && user?.role === "admin" ? (
-              <AdminDashboard />
-            ) : (
-              <Navigate to="/profile" replace />
-            )
-          }
-        />
+          {/* USER MANAGEMENT – MOD + ADMIN */}
+          <Route
+            path="/users"
+            element={
+              <RoleGuard allowedRoles={["moderator", "admin"]}>
+                <UserManagement />
+              </RoleGuard>
+            }
+          />
 
+          {/* MODERATOR PANEL – CHỈ MOD */}
+          <Route
+            path="/mod"
+            element={
+              <RoleGuard allowedRoles={["moderator"]}>
+                <ModeratorPanel />
+              </RoleGuard>
+            }
+          />
+
+          {/* ADMIN DASHBOARD – CHỈ ADMIN */}
+          <Route
+            path="/admin"
+            element={
+              <RoleGuard allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </RoleGuard>
+            }
+          />
+
+          {/* ACTIVITY LOGS – CHỈ ADMIN */}
+          <Route
+            path="/logs"
+            element={
+              <RoleGuard allowedRoles={["admin"]}>
+                <ActivityLogs />
+              </RoleGuard>
+            }
+          />
+        </Route>
+
+        {/* ==================== 404 ==================== */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
