@@ -11,6 +11,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 
 
 import User from "./models/User.js";
+console.log("✅ Server đang chạy, console.log hoạt động");
 
 dotenv.config({ path: "./.env" });
 
