@@ -5,6 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "./store/authSlice";
 
 // === COMPONENTS ===
 import SignUp from "./components/SignUp";
@@ -14,14 +16,17 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleGuard from "./components/RoleGuard";
+//import Sidebar from "./components/Sidebar";
 
 // === PAGES ===
 import UserManagement from "./pages/UserManagement";
 import ModeratorPanel from "./pages/ModeratorPanel";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./components/AdminDashboard";
 import ActivityLogs from "./pages/ActivityLogs";
 
 function App() {
+  const dispatch = useDispatch();
+
   const [user, setUser] = useState(() => {
     const localUser = localStorage.getItem("user");
     if (!localUser || localUser === "undefined" || localUser === "null") return null;
@@ -40,6 +45,8 @@ function App() {
     setUser(loggedInUser);
     localStorage.setItem("accessToken", accessToken); // ← LƯU accessToken
     localStorage.setItem("user", JSON.stringify(loggedInUser));
+    // Dispatch to Redux
+    dispatch(setCredentials({ user: loggedInUser, accessToken }));
   };
 
   // === XỬ LÝ LOGOUT ===
@@ -71,9 +78,22 @@ function App() {
         if (res.ok && data) {
           setUser(data);
           localStorage.setItem("user", JSON.stringify(data));
+        } else {
+          // Token không hợp lệ, xóa và chuyển về chưa đăng nhập
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+          setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (err) {
         console.error("Lỗi lấy user từ DB:", err);
+        // Xóa dữ liệu local nếu lỗi
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        setIsAuthenticated(false);
+        setUser(null);
       }
     };
 
@@ -89,9 +109,11 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
+        {/* ==================== PUBLIC ROUTES ==================== */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* ==================== PROTECTED ROUTES ==================== */}
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user} />}>
-          <Route path="/" element={<Navigate to="/profile" replace />} />
 
           {/* PROFILE – TẤT CẢ USER */}
           <Route
@@ -108,9 +130,9 @@ function App() {
 
           {/* USER MANAGEMENT – MOD + ADMIN */}
           <Route
-            path="/users"
+            path="/admin/users"
             element={
-              <RoleGuard allowedRoles={["moderator", "admin"]}>
+              <RoleGuard allowedRoles={["admin"]}>
                 <UserManagement />
               </RoleGuard>
             }
@@ -130,9 +152,11 @@ function App() {
           <Route
             path="/admin"
             element={
-              <RoleGuard allowedRoles={["admin"]}>
+              isAuthenticated && user?.role === "admin" ? (
                 <AdminDashboard />
-              </RoleGuard>
+              ) : (
+                <Navigate to="/profile" replace />
+              )
             }
           />
 

@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   gitname: { type: String, required: true },
   password: { type: String, required: true }, // mật khẩu
-  role: { type: String, enum: ["user", "admin"], default: "user" }, // phân quyền
+  role: { type: String, enum: ["user", "admin", "moderator"], default: "user" }, // phân quyền
 
   // 🔥 Thêm các trường cho Forgot Password
   resetToken: { type: String },

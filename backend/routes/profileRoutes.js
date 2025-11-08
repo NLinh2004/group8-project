@@ -20,11 +20,17 @@ router.get("/", verifyToken, async (req, res) => {
 // Cập nhật thông tin cá nhân
 router.put("/", verifyToken, async (req, res) => {
   try {
-    const { name, gitname, avatar } = req.body;
+    const { name, gitname, avatar, role } = req.body;
+
+    const updatedFields = {};
+    if (name) updatedFields.name = name;
+    if (gitname) updatedFields.gitname = gitname;
+    if (avatar) updatedFields.avatar = avatar;
+    if (role) updatedFields.role = role; // Thêm role nếu có
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
-      { name, gitname, avatar }, // ← TRUYỀN TRỰC TIẾP
+      { $set: updatedFields },
       { new: true, runValidators: true }
     ).select("-password");
 

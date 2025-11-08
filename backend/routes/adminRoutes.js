@@ -22,6 +22,31 @@ router.get("/users", verifyToken, adminMiddleware, async (req, res) => {
   }
 });
 
+// PUT: Cập nhật user - CHỈ ADMIN
+router.put("/users/:id", verifyToken, adminMiddleware, async (req, res) => {
+  try {
+    const { name, email, gitname, role } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { name, email, gitname, role },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy user" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật thành công",
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // DELETE: Xóa user - ADMIN HOẶC TỰ XÓA (KHÔNG CẦN adminMiddleware để user tự xóa)
 router.delete("/users/:id", verifyToken, deleteUser);
 
