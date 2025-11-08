@@ -5,6 +5,7 @@ import AddUserWithRole from "./AddUserWithRole";  // ← THAY ĐỔI Ở ĐÂY
 import UserList from "./UserList";
 
 function AdminDashboard() {
+  console.log("AdminDashboard component rendered");
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -12,26 +13,42 @@ function AdminDashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: "", name: "" });
 
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
+  console.log("Token from localStorage:", token);
+  console.log("Current user from localStorage:", currentUser);
+
   useEffect(() => {
+    console.log("useEffect for role check triggered");
     if (!token || currentUser.role !== "admin") {
+      console.log("Redirecting because no token or not admin");
       alert("Bạn không có quyền truy cập trang Admin!");
       navigate("/profile");
+    } else {
+      console.log("User is admin, proceeding");
     }
   }, [token, currentUser.role, navigate]);
 
   const fetchUsers = async () => {
     setLoading(true);
+    console.log("Token:", token);
+    console.log("Current User:", currentUser);
     try {
       const res = await fetch("http://localhost:5000/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Không thể lấy danh sách");
+      console.log("Response status:", res.status);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.log("Error response:", errorText);
+        throw new Error("Không thể lấy danh sách");
+      }
       const data = await res.json();
+      console.log("Data received:", data);
       setUsers(data);
     } catch (err) {
+      console.error("Fetch error:", err);
       setError(err.message);
     } finally {
       setLoading(false);

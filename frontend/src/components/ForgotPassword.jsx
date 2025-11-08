@@ -24,7 +24,13 @@ function ForgotPassword() {
         body: JSON.stringify({ email: email.trim() }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        console.error("Parse error:", parseErr);
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
       if (!res.ok) throw new Error(data.message || "Gửi thất bại");
 
       setMessage("Đã gửi link đặt lại mật khẩu đến email của bạn!");

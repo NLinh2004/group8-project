@@ -49,7 +49,12 @@ function Login({ onLoginSuccess }) {
         body: JSON.stringify({ email: form.email.trim(), password: form.password }),
       });
 
-      const loginData = await loginRes.json();
+      let loginData;
+      try {
+        loginData = await loginRes.json();
+      } catch (err) {
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
 
       // XỬ LÝ LỖI & RATE LIMIT
       if (!loginRes.ok) {
@@ -82,11 +87,21 @@ function Login({ onLoginSuccess }) {
       });
 
       if (!profileRes.ok) {
-        const err = await profileRes.json();
+        let err;
+        try {
+          err = await profileRes.json();
+        } catch (jsonErr) {
+          throw new Error("Server trả về phản hồi không hợp lệ");
+        }
         throw new Error(err.message || "Không thể lấy thông tin profile");
       }
 
-      const profileData = await profileRes.json();
+      let profileData;
+      try {
+        profileData = await profileRes.json();
+      } catch (jsonErr) {
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
 
       // 4. LƯU VÀO REDUX + CALLBACK
       dispatch(
@@ -99,6 +114,9 @@ function Login({ onLoginSuccess }) {
 
       // Giữ tương thích với App.js
       onLoginSuccess(profileData, loginData.accessToken);
+
+      // Lưu token với key "token" để tương thích với backend
+      localStorage.setItem("token", loginData.accessToken);
 
       setMessage(`Chào mừng ${profileData.name || "bạn"}!`);
       setTimeout(() => navigate("/profile"), 600);

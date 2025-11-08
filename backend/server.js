@@ -36,7 +36,7 @@ app.get("/", (req, res) => res.send("Server đang chạy đúng"));
 app.use("/api/auth", authRoutes);                    // Login, Signup, Refresh, Logout
 app.use("/api/profile", profileRoutes);              // GET/PUT profile
 app.use("/api/admin", adminRoutes);                  // Quản lý user (admin)
-app.use("/api/auth", forgotPasswordRoutes);          // Quên mật khẩu
+app.use("/api", forgotPasswordRoutes);               // Quên mật khẩu
 app.use("/api/users", userRoutes);                   // Danh sách user (moderator/admin)
 app.use("/api/upload", uploadRoutes);                // Upload avatar
 

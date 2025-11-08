@@ -49,8 +49,8 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     setMessage("Đang tải ảnh lên...");
 
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/upload-avatar", {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch("http://localhost:5000/api/upload/upload-avatar", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -58,7 +58,14 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
         body: formData,
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        console.error("Parse error:", parseErr);
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
+
       console.log("BƯỚC 2: RESPONSE TỪ CLOUDINARY", data); // LOG 2
 
       if (!res.ok) throw new Error(data.message || "Upload thất bại");
@@ -93,7 +100,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     console.log("BƯỚC 4: DỮ LIỆU GỬI LÊN DB", { name: name.trim(), gitname: gitname.trim(), avatar: avatar }); // LOG 4
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
 
       const res = await fetch("http://localhost:5000/api/profile", {
@@ -109,7 +116,13 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
         }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        console.error("Parse error:", parseErr);
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
       console.log("BƯỚC 5: RESPONSE TỪ /api/profile", data); // LOG 5
 
       if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
@@ -137,14 +150,21 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
   // === XỬ LÝ XÓA TÀI KHOẢN ===
   const handleDeleteAccount = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`http://localhost:5000/api/admin/users/${initialUser._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      let err;
+      try {
+        err = await res.json();
+      } catch (parseErr) {
+        console.error("Parse error:", parseErr);
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
+
       if (!res.ok) {
-        const err = await res.json();
         throw new Error(err.message || "Xóa tài khoản thất bại");
       }
 

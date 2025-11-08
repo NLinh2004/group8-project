@@ -14,11 +14,12 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleGuard from "./components/RoleGuard";
+import Sidebar from "./components/Sidebar";
 
 // === PAGES ===
 import UserManagement from "./pages/UserManagement";
 import ModeratorPanel from "./pages/ModeratorPanel";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./components/AdminDashboard";
 import ActivityLogs from "./pages/ActivityLogs";
 
 function App() {
@@ -97,12 +98,26 @@ function App() {
           <Route
             path="/profile"
             element={
-              <ProfilePage
-                key={user?._id}
-                user={user}
-                onLogout={handleLogout}
-                onUpdate={handleUpdateUser}
-              />
+              user?.role === 'admin' ? (
+                <div style={{ display: 'flex' }}>
+                  <Sidebar onLogout={handleLogout} />
+                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
+                    <ProfilePage
+                      key={user?._id}
+                      user={user}
+                      onLogout={handleLogout}
+                      onUpdate={handleUpdateUser}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <ProfilePage
+                  key={user?._id}
+                  user={user}
+                  onLogout={handleLogout}
+                  onUpdate={handleUpdateUser}
+                />
+              )
             }
           />
 
@@ -111,7 +126,12 @@ function App() {
             path="/users"
             element={
               <RoleGuard allowedRoles={["moderator", "admin"]}>
-                <UserManagement />
+                <div style={{ display: 'flex' }}>
+                  <Sidebar onLogout={handleLogout} />
+                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
+                    <UserManagement />
+                  </div>
+                </div>
               </RoleGuard>
             }
           />
@@ -121,7 +141,12 @@ function App() {
             path="/mod"
             element={
               <RoleGuard allowedRoles={["moderator"]}>
-                <ModeratorPanel />
+                <div style={{ display: 'flex' }}>
+                  <Sidebar onLogout={handleLogout} />
+                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
+                    <ModeratorPanel />
+                  </div>
+                </div>
               </RoleGuard>
             }
           />
@@ -131,7 +156,13 @@ function App() {
             path="/admin"
             element={
               <RoleGuard allowedRoles={["admin"]}>
-                <AdminDashboard />
+                <div style={{ display: 'flex' }}>
+                  <Sidebar onLogout={handleLogout} />
+                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
+                    {console.log("Rendering AdminDashboard in App.js")}
+                    <AdminDashboard />
+                  </div>
+                </div>
               </RoleGuard>
             }
           />
@@ -141,7 +172,12 @@ function App() {
             path="/logs"
             element={
               <RoleGuard allowedRoles={["admin"]}>
-                <ActivityLogs />
+                <div style={{ display: 'flex' }}>
+                  <Sidebar onLogout={handleLogout} />
+                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
+                    <ActivityLogs />
+                  </div>
+                </div>
               </RoleGuard>
             }
           />
