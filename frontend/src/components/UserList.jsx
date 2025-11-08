@@ -67,7 +67,7 @@ function UserList({ users, onEditUser, onDeleteUser, onDeleteAllUsers }) {
                       color: u.role === "admin" ? "#d32f2f" : "#1976d2",
                     }}
                   >
-                    {u.role === "admin" ? "ADMIN" : "USER"}
+                    {u.role === "admin" ? "ADMIN" : u.role === "moderator" ? "MODERATOR" : "USER"}
                   </td>
                   <td style={{ border: "1px solid #ddd", padding: "8px", textAlign: "center" }}>
                     <button

@@ -5,6 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "./store/authSlice";
 
 // === COMPONENTS ===
 import SignUp from "./components/SignUp";
@@ -14,7 +16,7 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleGuard from "./components/RoleGuard";
-import Sidebar from "./components/Sidebar";
+//import Sidebar from "./components/Sidebar";
 
 // === PAGES ===
 import UserManagement from "./pages/UserManagement";
@@ -23,6 +25,8 @@ import AdminDashboard from "./components/AdminDashboard";
 import ActivityLogs from "./pages/ActivityLogs";
 
 function App() {
+  const dispatch = useDispatch();
+
   const [user, setUser] = useState(() => {
     const localUser = localStorage.getItem("user");
     if (!localUser || localUser === "undefined" || localUser === "null") return null;
@@ -41,6 +45,8 @@ function App() {
     setUser(loggedInUser);
     localStorage.setItem("accessToken", accessToken); // ← LƯU accessToken
     localStorage.setItem("user", JSON.stringify(loggedInUser));
+    // Dispatch to Redux
+    dispatch(setCredentials({ user: loggedInUser, accessToken }));
   };
 
   // === XỬ LÝ LOGOUT ===
@@ -72,9 +78,22 @@ function App() {
         if (res.ok && data) {
           setUser(data);
           localStorage.setItem("user", JSON.stringify(data));
+        } else {
+          // Token không hợp lệ, xóa và chuyển về chưa đăng nhập
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+          setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (err) {
         console.error("Lỗi lấy user từ DB:", err);
+        // Xóa dữ liệu local nếu lỗi
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        setIsAuthenticated(false);
+        setUser(null);
       }
     };
 
@@ -90,48 +109,31 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
+        {/* ==================== PUBLIC ROUTES ==================== */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* ==================== PROTECTED ROUTES ==================== */}
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user} />}>
-          <Route path="/" element={<Navigate to="/profile" replace />} />
 
           {/* PROFILE – TẤT CẢ USER */}
           <Route
             path="/profile"
             element={
-              user?.role === 'admin' ? (
-                <div style={{ display: 'flex' }}>
-                  <Sidebar onLogout={handleLogout} />
-                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
-                    <ProfilePage
-                      key={user?._id}
-                      user={user}
-                      onLogout={handleLogout}
-                      onUpdate={handleUpdateUser}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <ProfilePage
-                  key={user?._id}
-                  user={user}
-                  onLogout={handleLogout}
-                  onUpdate={handleUpdateUser}
-                />
-              )
+              <ProfilePage
+                key={user?._id}
+                user={user}
+                onLogout={handleLogout}
+                onUpdate={handleUpdateUser}
+              />
             }
           />
 
           {/* USER MANAGEMENT – MOD + ADMIN */}
           <Route
-            path="/users"
+            path="/admin/users"
             element={
-              <RoleGuard allowedRoles={["moderator", "admin"]}>
-                <div style={{ display: 'flex' }}>
-                  <Sidebar onLogout={handleLogout} />
-                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
-                    <UserManagement />
-                  </div>
-                </div>
+              <RoleGuard allowedRoles={["admin"]}>
+                <UserManagement />
               </RoleGuard>
             }
           />
@@ -141,12 +143,7 @@ function App() {
             path="/mod"
             element={
               <RoleGuard allowedRoles={["moderator"]}>
-                <div style={{ display: 'flex' }}>
-                  <Sidebar onLogout={handleLogout} />
-                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
-                    <ModeratorPanel />
-                  </div>
-                </div>
+                <ModeratorPanel />
               </RoleGuard>
             }
           />
@@ -155,15 +152,11 @@ function App() {
           <Route
             path="/admin"
             element={
-              <RoleGuard allowedRoles={["admin"]}>
-                <div style={{ display: 'flex' }}>
-                  <Sidebar onLogout={handleLogout} />
-                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
-                    {console.log("Rendering AdminDashboard in App.js")}
-                    <AdminDashboard />
-                  </div>
-                </div>
-              </RoleGuard>
+              isAuthenticated && user?.role === "admin" ? (
+                <AdminDashboard />
+              ) : (
+                <Navigate to="/profile" replace />
+              )
             }
           />
 
@@ -172,12 +165,7 @@ function App() {
             path="/logs"
             element={
               <RoleGuard allowedRoles={["admin"]}>
-                <div style={{ display: 'flex' }}>
-                  <Sidebar onLogout={handleLogout} />
-                  <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
-                    <ActivityLogs />
-                  </div>
-                </div>
+                <ActivityLogs />
               </RoleGuard>
             }
           />
