@@ -104,6 +104,9 @@ function Login({ onLoginSuccess }) {
       }
 
       // 4. LƯU VÀO REDUX + CALLBACK
+      console.log("Login success - profileData:", profileData);
+      console.log("Login success - token:", loginData.token);
+
       dispatch(
         setCredentials({
           user: profileData,

@@ -1,10 +1,12 @@
 // src/components/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import AddUser from "./AddUser";  // ← THAY ĐỔI Ở ĐÂY
 import UserList from "./UserList";
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   console.log("AdminDashboard component rendered");
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
@@ -120,6 +122,20 @@ function AdminDashboard() {
 
       <h1 style={{ color: "#1976d2", textAlign: "center" }}>QUẢN TRỊ NGƯỜI DÙNG</h1>
       {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+      <div style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  }}>
+        <button
+        onClick={() => navigate('/logs')}
+        className="auth-btn"
+        style={{ width: "200px", height: "50px", marginLeft: "10px" }}
+      >
+       Xem Logs
+      </button>
+      </div>
+      
 
       {/* FORM MỚI – NHỎ HƠN + CÓ RADIO */}
       <AddUser

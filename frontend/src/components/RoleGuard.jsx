@@ -17,10 +17,10 @@ const RoleGuard = ({ allowedRoles = [] }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Nếu không có quyền → về login
+  // Nếu không có quyền → về profile (thay vì login để tránh loop)
   if (!allowedRoles.includes(user.role)) {
-    console.log("RoleGuard: Redirecting to login - role not allowed");
-    return <Navigate to="/login" replace />;
+    console.log("RoleGuard: Redirecting to profile - role not allowed");
+    return <Navigate to="/profile" replace />;
   }
 
   console.log("RoleGuard: Access granted");

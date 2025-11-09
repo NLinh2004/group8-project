@@ -6,28 +6,42 @@ function ActivityLogs() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { accessToken } = useSelector((state) => state.auth);
+  const { accessToken, user } = useSelector((state) => state.auth);
+
+  console.log("ActivityLogs - accessToken:", accessToken);
+  console.log("ActivityLogs - user:", user);
 
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    if (accessToken) {
+      fetchLogs();
+    } else {
+      setError("Không có token xác thực");
+    }
+  }, [accessToken]);
 
   const fetchLogs = async () => {
     setLoading(true);
+    setError(""); // Reset error
     try {
+      console.log("Fetching logs with token:", accessToken);
       const res = await fetch("http://localhost:5000/api/admin/logs", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
+      console.log("Fetch response status:", res.status);
+
       if (!res.ok) {
-        throw new Error("Không thể lấy danh sách logs");
+        const errorText = await res.text();
+        console.error("Fetch error response:", errorText);
+        throw new Error(`Lỗi ${res.status}: ${errorText}`);
       }
 
       const data = await res.json();
+      console.log("Fetched logs data:", data);
       setLogs(data);
     } catch (err) {
       console.error("Fetch logs error:", err);
-      setError(err.message);
+      setError(err.message || "Không thể tải logs");
     } finally {
       setLoading(false);
     }

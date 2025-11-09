@@ -164,9 +164,11 @@ function App() {
           <Route
             path="/logs"
             element={
-              <RoleGuard allowedRoles={["admin"]}>
+              isAuthenticated && user?.role === "admin" ? (
                 <ActivityLogs />
-              </RoleGuard>
+              ) : (
+                <Navigate to="/profile" replace />
+              )
             }
           />
         </Route>
