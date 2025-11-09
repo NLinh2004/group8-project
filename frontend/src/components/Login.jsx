@@ -81,7 +81,7 @@ function Login({ onLoginSuccess }) {
       const profileRes = await fetch("http://localhost:5000/api/profile", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${loginData.accessToken}`,
+          Authorization: `Bearer ${loginData.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -107,16 +107,16 @@ function Login({ onLoginSuccess }) {
       dispatch(
         setCredentials({
           user: profileData,
-          accessToken: loginData.accessToken,
+          accessToken: loginData.token,
           refreshToken: loginData.refreshToken,
         })
       );
 
       // Giữ tương thích với App.js
-      onLoginSuccess(profileData, loginData.accessToken);
+      onLoginSuccess(profileData, loginData.token);
 
       // Lưu token với key "token" để tương thích với backend
-      localStorage.setItem("token", loginData.accessToken);
+      localStorage.setItem("token", loginData.token);
 
       setMessage(`Chào mừng ${profileData.name || "bạn"}!`);
       setTimeout(() => navigate("/profile"), 600);

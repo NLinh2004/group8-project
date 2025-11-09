@@ -2,10 +2,6 @@ import express from "express";
 import multer from "multer";
 import cloudinary from "cloudinary";
 import { v2 as cloudinaryV2 } from "cloudinary";
-import dotenv from "dotenv";
-import verifyToken from "../middleware/authMiddleware.js";
-
-dotenv.config();
 
 const router = express.Router();
 
@@ -20,33 +16,26 @@ cloudinaryV2.config({
 const storage = multer.memoryStorage(); // không lưu trên ổ cứng
 const upload = multer({ storage });
 
-// POST /api/upload-avatar
-router.post("/upload-avatar", verifyToken, upload.single("avatar"), async (req, res) => {
+// POST /api/upload/upload-avatar
+router.post("/upload-avatar", upload.single("avatar"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "Chưa chọn file" });
 
-    // Upload lên Cloudinary using promise
-    const uploadPromise = new Promise((resolve, reject) => {
+    // Upload lên Cloudinary sử dụng Promise
+    const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinaryV2.uploader.upload_stream(
         { folder: "avatars" },
         (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
+          if (error) reject(error);
+          else resolve(result);
         }
       );
-
       uploadStream.end(req.file.buffer);
     });
 
-    const result = await uploadPromise;
-
     res.json({ message: "Avatar uploaded successfully", url: result.secure_url });
   } catch (err) {
-    console.error("Upload error:", err);
-    res.status(500).json({ message: err.message || "Upload failed" });
+    res.status(500).json({ message: err.message });
   }
 });
 

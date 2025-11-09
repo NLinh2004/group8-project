@@ -50,13 +50,16 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:5000/api/upload/upload-avatar", {
+      const res = await fetch("http://localhost:5000/api/upload-avatar", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
+
+      console.log("Response status:", res.status);
+      console.log("Response headers:", res.headers);
 
       let data;
       try {
