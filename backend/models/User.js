@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   resetTokenExpiry: { type: Date },
 
   // 🔥 Thêm avatar nếu muốn lưu URL
-  avatarUrl: { type: String },
+  avatar: { type: String },
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model("User", userSchema);
