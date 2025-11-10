@@ -16,28 +16,20 @@ function AdminDashboard() {
 
 
   const { accessToken, user: currentUser } = useSelector((state) => state.auth);
-
-  console.log("Token from Redux:", accessToken);
-  console.log("Current user from Redux:", currentUser);
-
   // Removed redundant role check since RoleGuard handles it
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    console.log("Token:", accessToken);
-    console.log("Current User:", currentUser);
     try {
       const res = await fetch("http://localhost:5000/api/admin/users", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      console.log("Response status:", res.status);
       if (!res.ok) {
         const errorText = await res.text();
         console.log("Error response:", errorText);
         throw new Error("Không thể lấy danh sách");
       }
       const data = await res.json();
-      console.log("Data received:", data);
       setUsers(data);
     } catch (err) {
       console.error("Fetch error:", err);
