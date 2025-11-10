@@ -21,6 +21,10 @@ const RoleGuard = ({ allowedRoles = [] }) => {
   if (!allowedRoles.includes(user.role)) {
     console.log("RoleGuard: Redirecting to profile - role not allowed");
     return <Navigate to="/profile" replace />;
+  // Nếu không có quyền → về login
+  if (!allowedRoles.includes(user.role)) {
+    console.log("RoleGuard: Redirecting to profile - role not allowed");
+    return <Navigate to="/profile" replace />;
   }
 
   console.log("RoleGuard: Access granted");

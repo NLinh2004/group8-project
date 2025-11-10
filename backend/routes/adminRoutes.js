@@ -23,6 +23,16 @@ router.get("/users", verifyToken, adminMiddleware, async (req, res) => {
   }
 });
 
+// Lấy danh sách logs hoạt động
+router.get("/logs", verifyToken, adminMiddleware, async (req, res) => {
+  try {
+    const logs = await Log.find().populate('userId', 'name email').sort({ timestamp: -1 });
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy logs" });
+  }
+});
+
 // PUT: Cập nhật user - CHỈ ADMIN
 router.put("/users/:id", verifyToken, adminMiddleware, async (req, res) => {
   try {

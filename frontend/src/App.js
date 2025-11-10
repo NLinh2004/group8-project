@@ -8,6 +8,7 @@ import {
 import { useDispatch } from "react-redux";
 import { setCredentials } from "./store/authSlice";
 
+
 // === COMPONENTS ===
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
@@ -16,7 +17,6 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleGuard from "./components/RoleGuard";
-//import Sidebar from "./components/Sidebar";
 
 // === PAGES ===
 import UserManagement from "./pages/UserManagement";
@@ -78,6 +78,8 @@ function App() {
         if (res.ok && data) {
           setUser(data);
           localStorage.setItem("user", JSON.stringify(data));
+          // Dispatch to Redux để restore state
+          dispatch(setCredentials({ user: data, accessToken: token }));
         } else {
           // Token không hợp lệ, xóa và chuyển về chưa đăng nhập
           localStorage.removeItem("accessToken");
@@ -98,7 +100,7 @@ function App() {
     };
 
     if (isAuthenticated) fetchUser();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
   return (
     <Router>
@@ -108,8 +110,6 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-
-        {/* ==================== PUBLIC ROUTES ==================== */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* ==================== PROTECTED ROUTES ==================== */}
@@ -128,7 +128,7 @@ function App() {
             }
           />
 
-          {/* USER MANAGEMENT – MOD + ADMIN */}
+          {/* USER MANAGEMENT  - ADMIN */}
           <Route
             path="/admin/users"
             element={
