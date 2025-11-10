@@ -43,9 +43,8 @@ function App() {
   const handleLoginSuccess = (loggedInUser, accessToken) => {
     setIsAuthenticated(true);
     setUser(loggedInUser);
-    localStorage.setItem("accessToken", accessToken); // ← LƯU accessToken
+    localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("user", JSON.stringify(loggedInUser));
-    // Dispatch to Redux
     dispatch(setCredentials({ user: loggedInUser, accessToken }));
   };
 
