@@ -3,6 +3,7 @@ import express from "express";
 import verifyToken from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
 import User from "../models/User.js";
+import Log from "../models/Log.js";
 import { getAllUsers, deleteUser } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -19,6 +20,16 @@ router.get("/users", verifyToken, adminMiddleware, async (req, res) => {
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi lấy danh sách người dùng" });
+  }
+});
+
+// Lấy danh sách logs hoạt động
+router.get("/logs", verifyToken, adminMiddleware, async (req, res) => {
+  try {
+    const logs = await Log.find().populate('userId', 'name email').sort({ timestamp: -1 });
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy logs" });
   }
 });
 
