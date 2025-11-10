@@ -15,7 +15,7 @@ function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
-      setMessage("❌ Mật khẩu không khớp");
+      setMessage("Mật khẩu không khớp");
       return;
     }
 
@@ -58,7 +58,7 @@ function SignUp() {
             <label>Họ và tên</label>
             <input
               type="text"
-              placeholder="Huỳnh Đặng Nhu Cương"
+              placeholder="Nhập tên người dùng"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
@@ -67,7 +67,7 @@ function SignUp() {
             <label style={{ marginTop: "20px" }}>Email</label>
             <input
               type="email"
-              placeholder="huynhdangnhucuong@gmail.com"
+              placeholder="Nhập email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
@@ -76,7 +76,7 @@ function SignUp() {
             <label style={{ marginTop: "20px" }}>Tên git</label>
             <input
               type="text"
-              placeholder="nhucuong"
+              placeholder="Nhập tên hiển thị"
               value={form.gitname}
               onChange={(e) => setForm({ ...form, gitname: e.target.value })}
               required

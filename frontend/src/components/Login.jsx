@@ -59,9 +59,10 @@ function Login({ onLoginSuccess }) {
       // XỬ LÝ LỖI & RATE LIMIT
       if (!loginRes.ok) {
         if (loginRes.status === 429) {
-          const retryAfter = loginData.retryAfter || 60;
-          setCountdown(retryAfter);
-          setRateLimitError(`Quá nhiều lần thử! Vui lòng chờ ${retryAfter} giây.`);
+          const retryAfter = loginRes.headers.get('Retry-After');
+          const retryAfterNum = retryAfter ? parseInt(retryAfter, 10) : 900; // fallback 15 phút
+          setCountdown(retryAfterNum);
+          setRateLimitError(`Quá nhiều lần thử! Vui lòng chờ ${Math.ceil(retryAfterNum / 60)} phút.`);
           return;
         }
         throw new Error(loginData.message || "Đăng nhập thất bại");

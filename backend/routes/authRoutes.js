@@ -25,6 +25,8 @@ const loginLimiter = rateLimit({
       },
       req,
     });
+    // Sử dụng header Retry-After của express-rate-limit
+    res.set('Retry-After', Math.ceil(15 * 60)); // 15 phút tính bằng giây
     return res.status(429).json({
       success: false,
       message: "Bạn đã đăng nhập sai quá nhiều lần, vui lòng thử lại sau 15 phút.",
