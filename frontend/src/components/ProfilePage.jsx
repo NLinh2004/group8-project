@@ -50,7 +50,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:5000/api/upload/upload-avatar", {
+      const res = await fetch("http://localhost:5000/api/upload-avatar", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -58,17 +58,17 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
         body: formData,
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch (parseErr) {
-        console.error("Parse error:", parseErr);
-        throw new Error("Server trả về phản hồi không hợp lệ");
+      console.log("Response status:", res.status);
+      console.log("Response headers:", res.headers);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Upload thất bại");
       }
 
-      console.log("BƯỚC 2: RESPONSE TỪ CLOUDINARY", data); // LOG 2
+      const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message || "Upload thất bại");
+      console.log("BƯỚC 2: RESPONSE TỪ CLOUDINARY", data); // LOG 2
 
       console.log("BƯỚC 3: UPLOAD THÀNH CÔNG → URL:", data.url); // LOG 3
       setAvatar(data.url);

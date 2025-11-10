@@ -4,7 +4,8 @@ import verifyToken from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ✅ Xem thông tin cá nhân
+
+// Xem thông tin cá nhân
 router.get("/", verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");

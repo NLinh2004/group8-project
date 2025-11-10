@@ -1,6 +1,14 @@
 import mongoose from "mongoose";
 
 const logSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  action: { type: String, required: true },
+  details: { type: Object },
+  ip: { type: String },
+  timestamp: { type: Date, default: Date.now },
+});
+
+export default mongoose.model("Log", logSchema);
   action: {
     type: String,
     required: true,

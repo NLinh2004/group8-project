@@ -61,5 +61,18 @@ router.put("/users/:id", verifyToken, adminMiddleware, async (req, res) => {
 // DELETE: Xóa user - ADMIN HOẶC TỰ XÓA (KHÔNG CẦN adminMiddleware để user tự xóa)
 router.delete("/users/:id", verifyToken, deleteUser);
 
+// Lấy danh sách logs hoạt động - CHỈ ADMIN
+router.get("/logs", verifyToken, adminMiddleware, async (req, res) => {
+  try {
+    const logs = await Log.find({})
+      .populate("userId", "name email") // populate user info
+      .sort({ timestamp: -1 }) // sort by newest first
+      .limit(100); // limit to last 100 logs
+
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy danh sách logs" });
+  }
+});
 
 export default router;

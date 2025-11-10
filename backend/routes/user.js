@@ -11,7 +11,7 @@ import {
 import multer from "multer";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // CRUD
 router.get("/", getUsers);
@@ -22,6 +22,6 @@ router.delete("/:id", deleteUser);
 // Nâng cao
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
-router.post("/upload-avatar", upload.single("avatar"), uploadAvatar);
+
 
 export default router;

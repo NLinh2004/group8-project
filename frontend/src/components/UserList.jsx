@@ -3,9 +3,9 @@ import React from "react";
 
 function UserList({ users, onEditUser, onDeleteUser, onDeleteAllUsers }) {
   const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc muốn xóa người dùng này?")) {
+    
       onDeleteUser(id);
-    }
+    
   };
 
   const handleDeleteAll = () => {
