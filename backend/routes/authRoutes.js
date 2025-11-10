@@ -9,7 +9,7 @@ const router = express.Router();
 // ==================== ĐĂNG KÝ ====================
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, gitname, password } = req.body;
+    const { name, email, gitname, password, role } = req.body;
 
     if (!name || !email || !gitname || !password) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
@@ -21,7 +21,7 @@ router.post("/signup", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, gitname, password: hashedPassword, role: "user" });
+    const newUser = new User({ name, email, gitname, password: hashedPassword, role: role || "user" });
     await newUser.save();
 
     // TẠO ACCESS TOKEN (15 PHÚT)

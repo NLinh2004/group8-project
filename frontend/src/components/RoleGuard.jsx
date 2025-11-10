@@ -1,10 +1,13 @@
+// src/components/RoleGuard.jsx
+import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
 
 const RoleGuard = ({ allowedRoles = [] }) => {
   const { user, accessToken } = useSelector((state) => state.auth);
 
-
+  console.log("RoleGuard - user:", user);
+  console.log("RoleGuard - accessToken:", accessToken);
   console.log("RoleGuard - allowedRoles:", allowedRoles);
   console.log("RoleGuard - user.role:", user?.role);
 
@@ -18,6 +21,10 @@ const RoleGuard = ({ allowedRoles = [] }) => {
   if (!allowedRoles.includes(user.role)) {
     console.log("RoleGuard: Redirecting to profile - role not allowed");
     return <Navigate to="/profile" replace />;
+  // Nếu không có quyền → về login
+  if (!allowedRoles.includes(user.role)) {
+    console.log("RoleGuard: Redirecting to login - role not allowed");
+    return <Navigate to="/login" replace />;
   }
 
   console.log("RoleGuard: Access granted");

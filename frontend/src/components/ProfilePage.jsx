@@ -49,8 +49,8 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     setMessage("Đang tải ảnh lên...");
 
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/upload-avatar", {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch("http://localhost:5000/api/upload/upload-avatar", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -58,7 +58,14 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
         body: formData,
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        console.error("Parse error:", parseErr);
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
+
       console.log("BƯỚC 2: RESPONSE TỪ CLOUDINARY", data); // LOG 2
 
       if (!res.ok) throw new Error(data.message || "Upload thất bại");
@@ -93,7 +100,7 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
     console.log("BƯỚC 4: DỮ LIỆU GỬI LÊN DB", { name: name.trim(), gitname: gitname.trim(), avatar: avatar }); // LOG 4
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
 
       const res = await fetch("http://localhost:5000/api/profile", {
@@ -109,7 +116,13 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
         }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        console.error("Parse error:", parseErr);
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
       console.log("BƯỚC 5: RESPONSE TỪ /api/profile", data); // LOG 5
 
       if (!res.ok) throw new Error(data.message || "Cập nhật thất bại");
@@ -137,14 +150,21 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
   // === XỬ LÝ XÓA TÀI KHOẢN ===
   const handleDeleteAccount = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`http://localhost:5000/api/admin/users/${initialUser._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      let err;
+      try {
+        err = await res.json();
+      } catch (parseErr) {
+        console.error("Parse error:", parseErr);
+        throw new Error("Server trả về phản hồi không hợp lệ");
+      }
+
       if (!res.ok) {
-        const err = await res.json();
         throw new Error(err.message || "Xóa tài khoản thất bại");
       }
 
@@ -162,17 +182,42 @@ const ProfilePage = ({ user: initialUser, onLogout, onUpdate }) => {
   const displayGitName = initialUser?.gitname?.trim() || "Chưa có Git name";
   const email = initialUser?.email?.trim() || "Chưa có email";
 
+  const getRoleInVietnamese = (role) => {
+    switch (role) {
+      case 'admin': return 'Quản trị viên';
+      case 'moderator': return 'Điều hành viên';
+      case 'user': return 'Người dùng';
+      default: return 'Người dùng';
+    }
+  };
+
   return (
     <div className="profile-container">
-      {onLogout && (
-        <button
-          onClick={onLogout}
-          className="auth-btn logout-btn"
-          style={{ width: "150px", margin: "20px auto", display: "block" }}
-        >
-          Đăng xuất
-        </button>
-      )}
+      {/* WELCOME TEXT */}
+      <div style={{ textAlign: "left", margin: "20px 0", fontSize: "18px", fontWeight: "600", color: "#1976d2" }}>
+        Xin chào {getRoleInVietnamese(user?.role)} {user?.name || "Người dùng"}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: "10px", margin: "20px 0"}}>
+        {user?.role === 'admin' && (
+          <button
+            onClick={() => navigate('/admin')}
+            className="auth-btn"
+            style={{ width: "250px", height: "50px" }}
+          >
+            Admin Dashboard
+          </button>
+        )}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="auth-btn logout-btn"
+            style={{ width: "250px"}}
+          >
+            Đăng xuất
+          </button>
+        )}
+      </div>
 
       <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", maxWidth: "1200px", margin: "0 auto" }}>
         

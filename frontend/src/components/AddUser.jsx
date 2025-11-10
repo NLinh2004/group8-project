@@ -4,6 +4,7 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gitname, setGitname] = useState("");
+  const [role, setRole] = useState("user");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({ name: "", email: "", gitname: "", form: "" });
 
@@ -13,11 +14,13 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
       setName(editingUser.name || "");
       setEmail(editingUser.email || "");
       setGitname(editingUser.gitname || "");
+      setRole(editingUser.role || "user");
       setErrors({ name: "", email: "", gitname: "", form: "" });
     } else {
       setName("");
       setEmail("");
       setGitname("");
+      setRole("user");
       setErrors({ name: "", email: "", gitname: "", form: "" });
     }
   }, [editingUser]);
@@ -67,9 +70,9 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
     try {
       if (editingUser) {
         if (!editingUser._id) throw new Error("ID người dùng không hợp lệ");
-        await onUpdateUser({ id: editingUser._id, name, email, gitname });
+        await onUpdateUser({ id: editingUser._id, name, email, gitname, role });
       } else {
-        await onAddUser({ name, email, gitname });
+        await onAddUser({ name, email, gitname, role });
       }
       // Không reset form, chỉ xóa lỗi
       setErrors({ name: "", email: "", gitname: "", form: "" });
@@ -91,7 +94,7 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
   };
 
   return (
-    <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "8px" }}>
+    <div style={{ width: "70%", margin: "0 auto", border: "1px solid #ddd", padding: "15px", borderRadius: "8px" }}>
       <h2>{editingUser ? "Sửa người dùng" : "Thêm người dùng"}</h2>
       {errors.form && <p style={{ color: "red" }}>{errors.form}</p>}
       <form onSubmit={handleSubmit}>
@@ -140,6 +143,48 @@ function AddUser({ onAddUser, onUpdateUser, editingUser }) {
           />
           {errors.gitname && <p style={{ color: "red", fontSize: "12px" }}>{errors.gitname}</p>}
         </div>
+
+        {/* Radio Button chọn Role */}
+        <div style={{ marginBottom: "10px", textAlign: "center", padding: "12px", backgroundColor: "#f9f9f9", borderRadius: "8px" }}>
+          <label style={{ marginRight: "16px", fontWeight: "600" }}>
+            <input
+              type="radio"
+              value="user"
+              checked={role === "user"}
+              onChange={(e) => setRole(e.target.value)}
+              style={{ marginRight: "6px" }}
+            />
+            User
+          </label>
+          <label style={{ marginRight: "16px", fontWeight: "600" }}>
+            <input
+              type="radio"
+              value="moderator"
+              checked={role === "moderator"}
+              onChange={(e) => setRole(e.target.value)}
+              style={{ marginRight: "6px" }}
+            />
+            Moderator
+          </label>
+          <label style={{ fontWeight: "600" }}>
+            <input
+              type="radio"
+              value="admin"
+              checked={role === "admin"}
+              onChange={(e) => setRole(e.target.value)}
+              style={{ marginRight: "6px" }}
+            />
+            Admin
+          </label>
+        </div>
+
+        {/* Hiển thị role hiện tại khi sửa */}
+        {editingUser && (
+          <p style={{ textAlign: "center", color: "#666", fontSize: "14px", marginTop: "8px" }}>
+            Đang sửa: <strong>{editingUser.name}</strong> – Vai trò: <strong>{role}</strong>
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={isSubmitting}

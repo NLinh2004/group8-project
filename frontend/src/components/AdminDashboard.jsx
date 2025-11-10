@@ -1,42 +1,49 @@
 // src/components/AdminDashboard.jsx
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import AddUserWithRole from "./AddUserWithRole";  // ← THAY ĐỔI Ở ĐÂY
+import React, { useState, useEffect, useCallback } from "react";
+import { useSelector } from "react-redux";
+import AddUser from "./AddUser";  // ← THAY ĐỔI Ở ĐÂY
 import UserList from "./UserList";
 
 function AdminDashboard() {
+  console.log("AdminDashboard component rendered");
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: "", name: "" });
 
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-  useEffect(() => {
-    if (!token || currentUser.role !== "admin") {
-      alert("Bạn không có quyền truy cập trang Admin!");
-      navigate("/profile");
-    }
-  }, [token, currentUser.role, navigate]);
+  const { accessToken, user: currentUser } = useSelector((state) => state.auth);
 
-  const fetchUsers = async () => {
+  console.log("Token from Redux:", accessToken);
+  console.log("Current user from Redux:", currentUser);
+
+  // Removed redundant role check since RoleGuard handles it
+
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
+    console.log("Token:", accessToken);
+    console.log("Current User:", currentUser);
     try {
       const res = await fetch("http://localhost:5000/api/admin/users", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
-      if (!res.ok) throw new Error("Không thể lấy danh sách");
+      console.log("Response status:", res.status);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.log("Error response:", errorText);
+        throw new Error("Không thể lấy danh sách");
+      }
       const data = await res.json();
+      console.log("Data received:", data);
       setUsers(data);
     } catch (err) {
+      console.error("Fetch error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
 
   // GỌI API SIGNUP VỚI ROLE
   const handleAddUser = async (userData) => {
@@ -50,11 +57,11 @@ function AdminDashboard() {
 
   // GỌI API UPDATE VỚI ROLE
   const handleUpdateUser = async ({ id, ...userData }) => {
-    await fetch(`http://localhost:5000/api/profile/${id}`, {
+    await fetch(`http://localhost:5000/api/admin/users/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(userData),
     });
@@ -67,7 +74,7 @@ function AdminDashboard() {
   try {
     const res = await fetch(`http://localhost:5000/api/admin/users/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (!res.ok) {
@@ -90,18 +97,32 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (token && currentUser.role === "admin") fetchUsers();
-  }, []);
+    if (accessToken && currentUser?.role === "admin") fetchUsers();
+  }, [accessToken, currentUser?.role, fetchUsers]);
 
-  if (!token || currentUser.role !== "admin") return null;
+
+
+  const getRoleInVietnamese = (role) => {
+    switch (role) {
+      case 'admin': return 'Quản trị viên';
+      case 'moderator': return 'Điều hành viên';
+      case 'user': return 'Người dùng';
+      default: return 'Người dùng';
+    }
+  };
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
+      {/* WELCOME TEXT */}
+      <div style={{ textAlign: "left", margin: "20px 0", fontSize: "18px", fontWeight: "600", color: "#1976d2" }}>
+        Xin chào {getRoleInVietnamese(currentUser?.role)} {currentUser?.name || "Người dùng"}
+      </div>
+
       <h1 style={{ color: "#1976d2", textAlign: "center" }}>QUẢN TRỊ NGƯỜI DÙNG</h1>
       {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
 
       {/* FORM MỚI – NHỎ HƠN + CÓ RADIO */}
-      <AddUserWithRole
+      <AddUser
         onAddUser={handleAddUser}
         onUpdateUser={handleUpdateUser}
         editingUser={editingUser}
