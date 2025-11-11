@@ -4,7 +4,7 @@ import { store } from "../store";
 import { refreshAccessToken, logout } from "../store/authSlice";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api", // ← DÙNG ENV
 });
 
 // Gắn accessToken vào header
@@ -22,22 +22,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Chỉ refresh 1 lần duy nhất
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        // Gọi refresh token từ Redux
         await store.dispatch(refreshAccessToken()).unwrap();
-
-        // Lấy accessToken mới từ store và thử lại request
         const newToken = store.getState().auth.accessToken;
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh thất bại → logout + redirect
         store.dispatch(logout());
+        localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
