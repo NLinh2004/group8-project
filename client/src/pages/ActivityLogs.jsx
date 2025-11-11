@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 
 function ActivityLogs() {
@@ -11,15 +11,7 @@ function ActivityLogs() {
   console.log("ActivityLogs - accessToken:", accessToken);
   console.log("ActivityLogs - user:", user);
 
-  useEffect(() => {
-    if (accessToken) {
-      fetchLogs();
-    } else {
-      setError("Không có token xác thực");
-    }
-  }, [accessToken]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     setError(""); // Reset error
     try {
@@ -45,7 +37,16 @@ function ActivityLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) {
+      fetchLogs();
+    } else {
+      setError("Không có token xác thực");
+    }
+  }, [accessToken, fetchLogs]);
+
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString("vi-VN");
