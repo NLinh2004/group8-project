@@ -21,7 +21,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "http://localhost:3000",                    // Local dev (giữ nguyên)
   "https://group8-project-4ykc.vercel.app",   // Vercel frontend
-  "https://group8-project.vercel.app",        // Dự phòng
+  "https://group8-project.vercel.app",
+  "https://group8-project-hazel.vercel.app/"// Dự phòng
 ];
 
 app.use(
