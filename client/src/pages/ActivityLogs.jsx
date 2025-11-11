@@ -17,7 +17,7 @@ function ActivityLogs() {
     } else {
       setError("Không có token xác thực");
     }
-  }, [accessToken]);
+  }, [accessToken, fetchLogs]);
 
   const fetchLogs = async () => {
     setLoading(true);
