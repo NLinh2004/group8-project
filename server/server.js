@@ -9,17 +9,37 @@ import forgotPasswordRoutes from "./routes/forgotPasswordRoutes.js";
 import userRoutes from "./routes/user.js"; 
 import uploadRoutes from "./routes/uploadRoutes.js";
 
-
 import User from "./models/User.js";
-console.log("✅ Server đang chạy, console.log hoạt động");
+console.log("Server đang chạy, console.log hoạt động");
 
 dotenv.config({ path: "./.env" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({ origin: "http://localhost:3000", methods: ["GET","POST","PUT","DELETE"], credentials: true }));
+// === BỔ SUNG: CORS CHO VERCEL + LOCAL (KHÔNG THAY ĐỔI CŨ) ===
+const allowedOrigins = [
+  "http://localhost:3000",                    // Local dev (giữ nguyên)
+  "https://group8-project-4ykc.vercel.app",   // Vercel frontend
+  "https://group8-project.vercel.app",        // Dự phòng
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Cho phép Postman, mobile, hoặc origin hợp lệ
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
+// === GIỮ NGUYÊN CÁC PHẦN KHÁC ===
 app.use(express.json());
 
 // Kết nối MongoDB
@@ -37,7 +57,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api", forgotPasswordRoutes); 
 app.use("/api", userRoutes); 
 app.use("/api", uploadRoutes); 
-
 
 // Khởi động server
 app.listen(PORT, () => {
