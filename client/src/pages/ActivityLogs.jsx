@@ -11,14 +11,6 @@ function ActivityLogs() {
   console.log("ActivityLogs - accessToken:", accessToken);
   console.log("ActivityLogs - user:", user);
 
-  useEffect(() => {
-    if (accessToken) {
-      fetchLogs();
-    } else {
-      setError("Không có token xác thực");
-    }
-  }, [accessToken, fetchLogs]);
-
   const fetchLogs = async () => {
     setLoading(true);
     setError(""); // Reset error
@@ -46,7 +38,13 @@ function ActivityLogs() {
       setLoading(false);
     }
   };
-
+   useEffect(() => {
+    if (accessToken) {
+      fetchLogs();
+    } else {
+      setError("Không có token xác thực");
+    }
+  }, [accessToken, fetchLogs]);
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString("vi-VN");
   };
