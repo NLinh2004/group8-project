@@ -10,34 +10,22 @@ import userRoutes from "./routes/user.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 
 import User from "./models/User.js";
-console.log("Server đang chạy, console.log hoạt động");
+console.log("✅ Server đang chạy, console.log hoạt động");
 
 dotenv.config({ path: "./.env" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// === BỔ SUNG: CORS CHO VERCEL + LOCAL (KHÔNG THAY ĐỔI CŨ) ===
-const allowedOrigins = [
-  "https://group8-project-hazel.vercel.app/"
-];
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Cho phép Postman, mobile, hoặc origin hợp lệ
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
-
-// === GIỮ NGUYÊN CÁC PHẦN KHÁC ===
+// Middleware
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://group8-project-hazel.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 // Kết nối MongoDB
