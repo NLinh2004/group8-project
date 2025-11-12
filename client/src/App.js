@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "./store/authSlice";
-
 
 // === COMPONENTS ===
 import SignUp from "./components/SignUp";
@@ -24,8 +23,12 @@ import ModeratorPanel from "./pages/ModeratorPanel";
 import AdminDashboard from "./components/AdminDashboard";
 import ActivityLogs from "./pages/ActivityLogs";
 
+// === BỔ SUNG: DÙNG AXIOS INSTANCE (THAY localhost:5000) ===
+import api from "./api/axiosInstance";
+
 function App() {
   const dispatch = useDispatch();
+  const { accessToken: reduxToken } = useSelector((state) => state.auth); // ← BỔ SUNG: DÙNG REDUX
 
   const [user, setUser] = useState(() => {
     const localUser = localStorage.getItem("user");
@@ -37,7 +40,7 @@ function App() {
     }
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("accessToken")); // ← DÙNG accessToken
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("accessToken"));
 
   // === XỬ LÝ LOGIN ===
   const handleLoginSuccess = (loggedInUser, accessToken) => {
@@ -49,13 +52,14 @@ function App() {
   };
 
   // === XỬ LÝ LOGOUT ===
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     setIsAuthenticated(false);
     setUser(null);
-  };
+    dispatch(setCredentials({ user: null, accessToken: null }));
+  }, [dispatch]);
 
   // === CẬP NHẬT USER ===
   const handleUpdateUser = (updatedUser) => {
@@ -63,43 +67,30 @@ function App() {
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  // === TẢI USER TỪ DB KHI CÓ TOKEN ===
+  // === BỔ SUNG: TẢI USER TỪ API (THAY localhost:5000) ===
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("accessToken");
       if (!token || token === "undefined" || token === "null") return;
 
       try {
-        const res = await fetch("http://localhost:5000/api/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok && data) {
+        const res = await api.get("/profile"); // ← DÙNG api → tự động baseURL
+        const data = res.data;
+        if (data) {
           setUser(data);
           localStorage.setItem("user", JSON.stringify(data));
-          // Dispatch to Redux để restore state
           dispatch(setCredentials({ user: data, accessToken: token }));
         } else {
-          // Token không hợp lệ, xóa và chuyển về chưa đăng nhập
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
-          setIsAuthenticated(false);
-          setUser(null);
+          handleLogout();
         }
       } catch (err) {
         console.error("Lỗi lấy user từ DB:", err);
-        // Xóa dữ liệu local nếu lỗi
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-        setIsAuthenticated(false);
-        setUser(null);
+        handleLogout();
       }
     };
 
-    if (isAuthenticated) fetchUser();
-  }, [isAuthenticated, dispatch]);
+    if (isAuthenticated || reduxToken) fetchUser();
+  }, [isAuthenticated, reduxToken, dispatch, handleLogout]);
 
   return (
     <Router>
@@ -112,9 +103,8 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* ==================== PROTECTED ROUTES ==================== */}
-        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user} />}>
+        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated || !!reduxToken} user={user} />}>
 
-          {/* PROFILE – TẤT CẢ USER */}
           <Route
             path="/profile"
             element={
@@ -127,7 +117,6 @@ function App() {
             }
           />
 
-          {/* USER MANAGEMENT  - ADMIN */}
           <Route
             path="/admin/users"
             element={
@@ -137,7 +126,6 @@ function App() {
             }
           />
 
-          {/* MODERATOR PANEL – CHỈ MOD */}
           <Route
             path="/mod"
             element={
@@ -147,11 +135,10 @@ function App() {
             }
           />
 
-          {/* ADMIN DASHBOARD – CHỈ ADMIN */}
           <Route
             path="/admin"
             element={
-              isAuthenticated && user?.role === "admin" ? (
+              (isAuthenticated || reduxToken) && user?.role === "admin" ? (
                 <AdminDashboard />
               ) : (
                 <Navigate to="/profile" replace />
@@ -159,11 +146,10 @@ function App() {
             }
           />
 
-          {/* ACTIVITY LOGS – CHỈ ADMIN */}
           <Route
             path="/logs"
             element={
-              isAuthenticated && user?.role === "admin" ? (
+              (isAuthenticated || reduxToken) && user?.role === "admin" ? (
                 <ActivityLogs />
               ) : (
                 <Navigate to="/profile" replace />
@@ -172,7 +158,6 @@ function App() {
           />
         </Route>
 
-        {/* ==================== 404 ==================== */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
