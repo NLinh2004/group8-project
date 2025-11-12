@@ -23,12 +23,12 @@ import ModeratorPanel from "./pages/ModeratorPanel";
 import AdminDashboard from "./components/AdminDashboard";
 import ActivityLogs from "./pages/ActivityLogs";
 
-// === BỔ SUNG: DÙNG AXIOS INSTANCE (THAY localhost:5000) ===
+// === AXIOS INSTANCE ===
 import api from "./api/axiosInstance";
 
 function App() {
   const dispatch = useDispatch();
-  const { accessToken: reduxToken } = useSelector((state) => state.auth); // ← BỔ SUNG: DÙNG REDUX
+  const { accessToken: reduxToken } = useSelector((state) => state.auth);
 
   const [user, setUser] = useState(() => {
     const localUser = localStorage.getItem("user");
@@ -40,9 +40,28 @@ function App() {
     }
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("accessToken"));
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("accessToken")
+  );
 
-  // === XỬ LÝ LOGIN ===
+  // === Đồng bộ Redux với localStorage khi App mount ===
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const localUser = localStorage.getItem("user");
+    if (token && localUser) {
+      try {
+        const parsedUser = JSON.parse(localUser);
+        dispatch(setCredentials({ user: parsedUser, accessToken: token }));
+        setIsAuthenticated(true);
+        setUser(parsedUser);
+      } catch {
+        // nếu parse lỗi thì logout
+        handleLogout();
+      }
+    }
+  }, [dispatch]);
+
+  // === LOGIN ===
   const handleLoginSuccess = (loggedInUser, accessToken) => {
     setIsAuthenticated(true);
     setUser(loggedInUser);
@@ -51,7 +70,7 @@ function App() {
     dispatch(setCredentials({ user: loggedInUser, accessToken }));
   };
 
-  // === XỬ LÝ LOGOUT ===
+  // === LOGOUT ===
   const handleLogout = useCallback(() => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
@@ -61,20 +80,20 @@ function App() {
     dispatch(setCredentials({ user: null, accessToken: null }));
   }, [dispatch]);
 
-  // === CẬP NHẬT USER ===
+  // === UPDATE USER ===
   const handleUpdateUser = (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  // === BỔ SUNG: TẢI USER TỪ API (THAY localhost:5000) ===
+  // === Fetch user từ API ===
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("accessToken");
       if (!token || token === "undefined" || token === "null") return;
 
       try {
-        const res = await api.get("/profile"); // ← DÙNG api → tự động baseURL
+        const res = await api.get("/profile");
         const data = res.data;
         if (data) {
           setUser(data);
@@ -95,16 +114,33 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* ==================== PUBLIC ROUTES ==================== */}
+        {/* PUBLIC ROUTES */}
         <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* ==================== PROTECTED ROUTES ==================== */}
-        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated || !!reduxToken} user={user} />}>
+        {/* Route "/" thông minh hơn */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated || reduxToken ? (
+              <Navigate to="/profile" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
 
+        {/* PROTECTED ROUTES */}
+        <Route
+          element={
+            <ProtectedRoute
+              isAuthenticated={isAuthenticated || !!reduxToken}
+              user={user}
+            />
+          }
+        >
           <Route
             path="/profile"
             element={
